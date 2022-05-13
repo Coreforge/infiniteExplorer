@@ -1,0 +1,11 @@
+button{
+	border-radius: 0px;
+	border-style: none;
+	margin: 0px;
+	padding: 1px;
+}
+
+
+button.selected{
+	background: #202020;
+}
