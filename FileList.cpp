@@ -5,7 +5,7 @@ namespace sigc {
   SIGC_FUNCTORS_DEDUCE_RESULT_TYPE_WITH_DECLTYPE
 }
 
-FileList::FileList(Gtk::Window* window, Glib::RefPtr<Gtk::Builder> builder){
+FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	parent = window;
 	this->builder = builder;
 
@@ -15,7 +15,10 @@ FileList::FileList(Gtk::Window* window, Glib::RefPtr<Gtk::Builder> builder){
 	frame = new Gtk::Frame();
 	label = new Gtk::Label("Files");
 	listBox = new Gtk::Box();
+	internalLayoutBox = new Gtk::Box();
+	controlBox = new Gtk::Box();
 	evtBox = new Gtk::EventBox();
+	currentPathLabel = new Gtk::Label();
 	label->set_text("Files");
 	frame->show();
 	label->show();
@@ -31,7 +34,19 @@ FileList::FileList(Gtk::Window* window, Glib::RefPtr<Gtk::Builder> builder){
 
 	listBox->set_property("orientation", Gtk::Orientation::ORIENTATION_VERTICAL);
 	listBox->show();
-	frame->add(*listBox);
+	internalLayoutBox->set_property("orientation", Gtk::Orientation::ORIENTATION_VERTICAL);
+	internalLayoutBox->show();
+	controlBox->set_property("orientation", Gtk::Orientation::ORIENTATION_HORIZONTAL);
+	controlBox->show();
+	frame->add(*internalLayoutBox);
+	internalLayoutBox->add(*controlBox);
+	internalLayoutBox->add(*listBox);
+
+	controlBox->add(*currentPathLabel);
+	//currentPathLabel->set_editable(false);
+	currentPathLabel->show();
+
+
 	evtBox->add_events(Gdk::BUTTON_PRESS_MASK);
 	evtBox->add_events(Gdk::KEY_PRESS_MASK);
 	evtBox->add_events(Gdk::KEY_RELEASE_MASK);
@@ -78,6 +93,10 @@ void FileList::onFrameClicked(){
 void FileList::onEntryDoubleClicked(Gtk::Button* button, GdkEventButton* event, FileEntry* entry){
 	if(event->type == GDK_2BUTTON_PRESS){
 		std::cout << "Double click!\n";
+		if(entry->onClickID != nullptr){
+			// we have a function to call
+			entry->onClickID(entry->ID,entry->data);
+		}
 	}
 	if(event->type == GDK_BUTTON_PRESS){
 		std::cout << "click!\n";
@@ -166,7 +185,19 @@ void FileList::onEntryClicked(Gtk::Button* button, FileEntry* entry){
 
 }
 
+void FileList::clearList(){
+	for(int i = 0; i < shownEntries.size(); i++){
+		listBox->remove(*shownEntries[i].second);
+		shownEntries[i].second->remove();
+
+	}
+	shownEntries.clear();
+	selectedEntries.clear();
+
+}
+
 void FileList::updateFiles(std::vector<FileEntry*> entries){
+	clearList();
 	for(int i = 0; i < entries.size(); i++){
 		Gtk::Button* button = new Gtk::Button();
 		button->set_label(entries[i]->name);
@@ -183,7 +214,16 @@ void FileList::updateFiles(std::vector<FileEntry*> entries){
 		buttonContext->add_provider(cssProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 		//buttonContext->add_class("selected");
 
-		button->set_image_from_icon_name("folder", Gtk::ICON_SIZE_SMALL_TOOLBAR);
+
+		const char* iconName;
+		switch(entries[i]->type){
+		case FILE_TYPE_FILE:
+			iconName = FILE_TYPE_FILE_ICON;
+			break;
+		case FILE_TYPE_DIRECTORY:
+			iconName = FILE_TYPE_DIRECTORY_ICON;
+		}
+		button->set_image_from_icon_name(iconName, Gtk::ICON_SIZE_SMALL_TOOLBAR);
 		button->set_always_show_image(true);
 		button->set_image_position(Gtk::PositionType::POS_LEFT);
 		button->set_property("xalign", 0.0);

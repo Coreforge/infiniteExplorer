@@ -1,9 +1,21 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(infiniteExplorer VERSION 0.1.0)
 
+
+set(CMAKE_BUILD_TYPE Debug)
+
 add_executable(infiniteExplorer)
 
+# build libInfinite first
+set(INFINITE_EXPORT_OODLE ON)
+set(INFINITE_COPY_OODLE_DLL ON)
+set(INFINITE_OODLE_DLL oo2core_8_win64.dll)
+add_subdirectory(libInfinite/)
 
+# all of this copying around is needed with linoodle because linoodle expects the dll to be in the cwd
+if(${INFINITE_COPY_OODLE_DLL})
+	configure_file(libInfinite/${INFINITE_OODLE_DLL} ${INFINITE_OODLE_DLL} COPYONLY)
+endif()
 
 find_package(PkgConfig)
 
@@ -16,13 +28,16 @@ target_include_directories(infiniteExplorer PRIVATE ${GTKMM_INCLUDE_DIRS})
 
 set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 17)
 
-set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp)
+set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp ModuleManager.cpp)
 
 target_sources(infiniteExplorer PRIVATE ${sources})
 
 target_include_directories(infiniteExplorer PUBLIC .)
 
 target_link_libraries(infiniteExplorer ${GTKMM_LIBRARIES})
+
+# link libInfinite
+target_link_libraries(infiniteExplorer Infinite)
 
 # copy resource files
 include(res/CMakeLists.txt)
