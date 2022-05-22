@@ -1,0 +1,3 @@
+[submodule "libInfinite"]
+	path = libInfinite
+	url = ./libInfinite

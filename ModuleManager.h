@@ -7,6 +7,7 @@
 class ModuleManager{
 public:
 	void openModuleDialog();
+	void openPathDialog();
 	void exportEntryDialog();
 	void exportEntry(std::string path);
 	void buildNodeTree();
@@ -22,8 +23,9 @@ public:
 private:
 	std::vector<FileEntry*> fileEntries;
 	void exportMultiple();
-	void exportNode(ModuleNode* node, std::string path);	// recursive function to export a node
+	void exportNode(ModuleNode* node, std::string path, bool fullPath = false);	// recursive function to export a node
 
+	void loadPathRecursive(std::string path);
 
 
 	//void showNodeID(int ID,void* data);

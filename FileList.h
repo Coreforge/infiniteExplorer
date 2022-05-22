@@ -27,6 +27,9 @@ public:
 
 	Gtk::Label* currentPathLabel;
 	std::vector<std::pair<FileEntry*,Gtk::Button*>> selectedEntries;
+	std::vector<std::pair<FileEntry,Gtk::Button*>> shownEntries;
+	Gtk::ScrolledWindow* listScroller;
+	Gtk::ScrolledWindow* pathScroller;
 
 private:
 	Gtk::Container* parent;
@@ -37,9 +40,11 @@ private:
 	Gtk::Box* controlBox;
 	//Gtk::Button* goUpButton;
 
+	void onResize();
+
 	Gtk::EventBox* evtBox;
 	Glib::RefPtr<Gtk::Builder> builder;
-	std::vector<std::pair<FileEntry,Gtk::Button*>> shownEntries;
+
 
 	Glib::RefPtr<Gtk::CssProvider> cssProvider;
 	std::pair<FileEntry*,Gtk::Button*> activeEntry;

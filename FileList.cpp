@@ -19,6 +19,10 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	controlBox = new Gtk::Box();
 	evtBox = new Gtk::EventBox();
 	currentPathLabel = new Gtk::Label();
+	listScroller = new Gtk::ScrolledWindow();
+	pathScroller = new Gtk::ScrolledWindow();
+
+
 	label->set_text("Files");
 	frame->show();
 	label->show();
@@ -27,6 +31,7 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	alloc.set_width(150);
 	frame->set_label_align(0.5, 0.5);
 	frame->set_size_request(150, 300);
+
 	evtBox->add(*frame);
 	parent->add(*evtBox);
 	//frame->add(*label);
@@ -40,11 +45,22 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	controlBox->show();
 	frame->add(*internalLayoutBox);
 	internalLayoutBox->add(*controlBox);
-	internalLayoutBox->add(*listBox);
 
-	controlBox->add(*currentPathLabel);
+	listScroller->add(*listBox);
+	listScroller->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
+	listScroller->show();
+	listScroller->set_propagate_natural_height(true);
+	internalLayoutBox->add(*listScroller);
+
+
+	pathScroller->add(*currentPathLabel);
+	controlBox->add(*pathScroller);
+	pathScroller->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_NEVER);
+	pathScroller->set_propagate_natural_width(true);
 	//currentPathLabel->set_editable(false);
 	currentPathLabel->show();
+	pathScroller->show();
+
 
 
 	evtBox->add_events(Gdk::BUTTON_PRESS_MASK);
@@ -54,10 +70,16 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	evtBox->signal_key_press_event().connect([this] (GdkEventKey* key){onKeyPressed(key);return 0;});
 	evtBox->signal_key_release_event().connect([this] (GdkEventKey* key){onKeyReleased(key);return 0;});
 	evtBox->show();
+
+	frame->signal_check_resize().connect([this] {onResize();});
 	// load the style sheet for the buttons
 	cssProvider = Gtk::CssProvider::create();
 	cssProvider->load_from_path("res/fileExplorer.css");
 	selectedEntries.clear();
+}
+
+void FileList::onResize(){
+	printf("Resize!\n");
 }
 
 void FileList::onKeyPressed(GdkEventKey* key){

@@ -26,10 +26,12 @@ MainWindow::MainWindow(){
 	fileMenuItem->show();
 	Gtk::Menu* fileMenu = new Gtk::Menu;
 	Gtk::MenuItem* openModuleItem = new Gtk::MenuItem("Open Module");
+	Gtk::MenuItem* openPathItem = new Gtk::MenuItem("Open Deploy Path");
 	Gtk::MenuItem* ExportItem = new Gtk::MenuItem("Export");
 
 	fileMenuItem->set_submenu(*fileMenu);
 	fileMenu->add(*openModuleItem);
+	fileMenu->add(*openPathItem);
 	fileMenu->add(*ExportItem);
 	fileMenuItem->show();
 	fileMenu->show();
@@ -41,6 +43,9 @@ MainWindow::MainWindow(){
 	openModuleItem->show();
 	openModuleItem->signal_activate().connect([moduleManager] {moduleManager->openModuleDialog();});
 	openModuleItem->add_accelerator("activate", accelGroup, GDK_KEY_O, Gdk::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
+
+	openPathItem->show();
+	openPathItem->signal_activate().connect([moduleManager] {moduleManager->openPathDialog();});
 
 
 	FileList* filelist = new FileList(mainVBox,builder);
