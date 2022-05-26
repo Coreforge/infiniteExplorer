@@ -2,6 +2,14 @@
 #include <gtkmm.h>
 #include "ModuleManager.h"
 
+#ifdef _WIN64
+#include <windows.h>
+#include <fileapi.h>
+//#include <direct.h>
+
+//#warning WIN64 detected
+#endif
+
 void ModuleManager::openModuleDialog(){
 	printf("open\n");
 	Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Load Module",Gtk::FILE_CHOOSER_ACTION_OPEN);
@@ -10,8 +18,8 @@ void ModuleManager::openModuleDialog(){
 	fileChooser->set_select_multiple(true);
 	int response = fileChooser->run();
 	fileChooser->close();
-	if(response == Gtk::RESPONSE_CANCEL){
-		printf("canceld\n");
+	if(response != Gtk::RESPONSE_OK){
+		printf("cancel\n");
 		return;
 	}
 	std::vector<std::string> files = fileChooser->get_filenames();
@@ -19,6 +27,7 @@ void ModuleManager::openModuleDialog(){
 		printf("Opening file: %s\n",files[i].c_str());
 		Module* mod = new Module();
 		mod->loadModule(files[i].c_str());
+		printf("Loaded module\n");
 		modules.emplace_back(mod);
 	}
 
@@ -34,8 +43,8 @@ void ModuleManager::openPathDialog(){
 	fileChooser->add_button("_Open", Gtk::RESPONSE_OK);
 	int response = fileChooser->run();
 	fileChooser->close();
-	if(response == Gtk::RESPONSE_CANCEL){
-		printf("canceld\n");
+	if(response != Gtk::RESPONSE_OK){
+		printf("cancel\n");
 		return;
 	}
 
@@ -47,6 +56,66 @@ void ModuleManager::openPathDialog(){
 }
 
 void ModuleManager::loadPathRecursive(std::string path){
+
+	// this has to be done differently on POSIX-compliant systems and /windows/ ...sigh
+
+#ifdef _WIN64
+	// windows version
+	WIN32_FIND_DATA find;
+	HANDLE dirHandle;
+
+	std::string searchPath = path + "/*";
+
+	dirHandle = FindFirstFile(searchPath.c_str(), &find);
+
+	if (dirHandle == INVALID_HANDLE_VALUE) {
+		printf("Could not open %s\n", path.c_str());
+	}
+
+	do {
+		std::string cPath = path + "\\" + find.cFileName;
+		//printf("Found %s\n",cPath.c_str());
+		if (!(strncmp(find.cFileName, ".", 2) && strncmp(find.cFileName, "..", 3))) {
+			// . or .., skip those
+			continue;
+		}
+
+		if (find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			// is a directory
+			//printf("This is a directory\n");
+			loadPathRecursive(cPath);
+
+			// don't do the other stuff, which is only for files
+			continue;
+		}
+
+		// this is only for files
+
+		std::string name(find.cFileName);
+
+		// all of this can just be copied from the posix version
+		if (name.size() < 7) {
+			// name is too short
+			continue;
+		}
+		if (name.substr(name.size() - 7, 7) == ".module") {
+			// extension should match
+			printf("Trying %s\n", cPath.c_str());
+			Module* mod = new Module();
+			if (mod->loadModule(cPath.c_str())) {
+				// the module couldn't be loaded
+				mod->~Module();
+				printf("Failed to load module %s, skipping!\n", cPath.c_str());
+			}
+			else {
+				modules.emplace_back(mod);
+			}
+		}
+
+
+	} while (FindNextFile(dirHandle,&find));
+#else
+	// the posix version
 	DIR* dir;
 	dir = opendir(path.c_str());	// open the current directory
 	if(!dir){
@@ -98,6 +167,7 @@ void ModuleManager::loadPathRecursive(std::string path){
 		next:
 		ent = readdir(dir);	// next entry
 	}
+#endif
 }
 
 void ModuleManager::exportEntryDialog(){
@@ -140,7 +210,7 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 		// the full path got passed, just use that (only used when exporting a single file, as the user can specify a different file name in that case)
 		newPath = path;
 	}
-	printf("Exporting to %s\n",newPath.c_str());
+	//printf("Exporting to %s\n",newPath.c_str());
 	if(node->type == NODE_TYPE_FILE){
 		// finally a file, now export it!
 		FILE* out = fopen(newPath.c_str(),"w");
@@ -154,7 +224,13 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 	} else if(node->type == NODE_TYPE_DIRECTORY){
 		// still a directory, we need to go deeper!
 		// create the directory, in case it doesn't exist yet. If it exists, nothing happens
+#if defined( _WIN64) && !defined(__MINGW32__)
+		int mk = _mkdir(newPath.c_str());
+#elif defined(__MINGW32__)
+		int mk = mkdir(newPath.c_str());
+#else
 		int mk = mkdir(newPath.c_str(),S_IRWXG | S_IRWXU | S_IRWXO);
+#endif
 		if(mk != 0){
 			// some error occurred, but that doesn't have to be a problem. The directory might just already exist
 			if(errno != EEXIST){

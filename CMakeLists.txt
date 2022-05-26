@@ -17,13 +17,31 @@ if(${INFINITE_COPY_OODLE_DLL})
 	configure_file(libInfinite/${INFINITE_OODLE_DLL} ${INFINITE_OODLE_DLL} COPYONLY)
 endif()
 
-find_package(PkgConfig)
 
-pkg_check_modules(GTKMM gtkmm-3.0)
+# only use pkgconfig when not cross compiling
+if(NOT CUSTOM_GTKMM)
+	
+	find_package(PkgConfig)
+	
+	pkg_check_modules(GTKMM gtkmm-3.0)
+	
+	if(NOT DEFINED GTKMM_INCLUDE_DIRS)
+		message(STATUS "Could not find pkgconfig, trying to find gtkmm directly")
+		find_package(gtkmm-3.0)
+		#find_path(GTKMM_INCLUDE_DIRS gtkmm.h)
+		#message(STATUS "GTKmm include at ${GTKMM_INCLUDE_DIRS}")
+	else()
+		
+		
+		
+		include_directories(${GTKMM_INCLUDE_DIRS})
+		#target_link_directories(infiniteExplorer ${GTKMM_LIBRARY_DIRS})
+		target_include_directories(infiniteExplorer PRIVATE ${GTKMM_INCLUDE_DIRS})
+		target_link_libraries(infiniteExplorer ${GTKMM_LIBRARIES})
+		message(STATUS "using system gtkmm from pkgconfig")
+	endif()
+endif()
 
-include_directories(${GTKMM_INCLUDE_DIRS})
-#target_link_directories(infiniteExplorer ${GTKMM_LIBRARY_DIRS})
-target_include_directories(infiniteExplorer PRIVATE ${GTKMM_INCLUDE_DIRS})
 
 
 set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 17)
@@ -34,7 +52,7 @@ target_sources(infiniteExplorer PRIVATE ${sources})
 
 target_include_directories(infiniteExplorer PUBLIC .)
 
-target_link_libraries(infiniteExplorer ${GTKMM_LIBRARIES})
+
 
 # link libInfinite
 target_link_libraries(infiniteExplorer Infinite)

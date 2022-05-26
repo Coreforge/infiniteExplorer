@@ -27,8 +27,8 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	frame->show();
 	label->show();
 	frame->set_label_widget(*label);
-	Gtk::Allocation alloc;
-	alloc.set_width(150);
+	//Gtk::Allocation alloc;
+	//alloc.set_width(150);
 	frame->set_label_align(0.5, 0.5);
 	frame->set_size_request(150, 300);
 
@@ -45,18 +45,24 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	controlBox->show();
 	frame->add(*internalLayoutBox);
 	internalLayoutBox->add(*controlBox);
-
+	//internalLayoutBox->add(*listBox);
 	listScroller->add(*listBox);
 	listScroller->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
-	listScroller->show();
-	listScroller->set_propagate_natural_height(true);
-	internalLayoutBox->add(*listScroller);
 
+//#ifndef _WIN64
+	listScroller->set_propagate_natural_height(true);
+	//listScroller->set_property("propagate-natural-height", true);
+//#endif
+	internalLayoutBox->add(*listScroller);
+	listScroller->show();
 
 	pathScroller->add(*currentPathLabel);
 	controlBox->add(*pathScroller);
 	pathScroller->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_NEVER);
+
+//#ifndef _WIN64
 	pathScroller->set_propagate_natural_width(true);
+//#endif
 	//currentPathLabel->set_editable(false);
 	currentPathLabel->show();
 	pathScroller->show();
@@ -211,6 +217,7 @@ void FileList::clearList(){
 	for(int i = 0; i < shownEntries.size(); i++){
 		listBox->remove(*shownEntries[i].second);
 		shownEntries[i].second->remove();
+		shownEntries[i].second->~Button();
 
 	}
 	shownEntries.clear();
@@ -227,7 +234,6 @@ void FileList::updateFiles(std::vector<FileEntry*> entries){
 			//button->signal_clicked().connect(sigc::bind(sigc::ptr_fun(entries[i]->onClickID),entries[i]->ID));
 			button->add_events(Gdk::BUTTON_PRESS_MASK);
 			//button->signal_button_press_event().connect([this,button] (GdkEventButton* event){return onEntryClicked(button, event, entries[i]);});
-			std::cout << "ID\n";
 		} else if(entries[i]->onClickPath != nullptr){
 			//button->signal_().connect(sigc::bind(sigc::ptr_fun(entries[i]->onClickPath),entries[i]->path));
 		}

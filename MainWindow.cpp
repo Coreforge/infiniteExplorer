@@ -49,7 +49,7 @@ MainWindow::MainWindow(){
 
 
 	FileList* filelist = new FileList(mainVBox,builder);
-	FileEntry* entry1 = new FileEntry();
+	/*FileEntry* entry1 = new FileEntry();
 	FileEntry* entry2 = new FileEntry();
 	FileEntry* entry3 = new FileEntry();
 	FileEntry* entry4 = new FileEntry();
@@ -62,6 +62,6 @@ MainWindow::MainWindow(){
 	entries->emplace_back(entry2);
 	entries->emplace_back(entry3);
 	entries->emplace_back(entry4);
-	filelist->updateFiles(*entries);
+	filelist->updateFiles(*entries);*/
 	moduleManager->fileList = filelist;
 }
