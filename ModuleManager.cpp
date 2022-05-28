@@ -309,9 +309,9 @@ void ModuleManager::buildNodeTree(){
 	}
 }
 
-void showNodeID(int ID,void* data){
+void showNodeCallback(void* node,void* data){
 	ModuleManager* manager = (ModuleManager*)data;
-	manager->showNode(manager->fileEntryNodes[ID]);
+	manager->showNode((ModuleNode*)node);
 }
 
 void ModuleManager::showNode(ModuleNode* node){
@@ -322,25 +322,25 @@ void ModuleManager::showNode(ModuleNode* node){
 		fileEntries[i]->~FileEntry();
 	}
 	fileEntries.clear();
-	fileEntryNodes.clear();
 
 	// add the parent entry
 	FileEntry* parentEntry = new FileEntry();
 	parentEntry->name = "..";
 	parentEntry->ID = 0;
-	parentEntry->onClickID = &showNodeID;
+	parentEntry->onClick = &showNodeCallback;
 	parentEntry->data = this;
 	parentEntry->type = FILE_TYPE_DIRECTORY;
+	parentEntry->nodeRef = node->parent;
 	fileEntries.emplace_back(parentEntry);
-	fileEntryNodes.emplace_back(node->parent);
 
 	//now build the new list
 	int c = 1;	// just counting up the ID
+	// iterating through the keys like this seems to already automatically alphabetically sort them, which is nice
 	for(auto const&[key,value] : currentNode->children){
 		FileEntry* entry = new FileEntry();
 		entry->name = (char*)value->name.c_str();
 		entry->ID = c;
-		entry->onClickID = &showNodeID;
+		entry->onClick = &showNodeCallback;
 		entry->data = this;
 		entry->nodeRef = value;
 		switch(value->type){
@@ -352,7 +352,6 @@ void ModuleManager::showNode(ModuleNode* node){
 			break;
 		}
 		fileEntries.emplace_back(entry);
-		fileEntryNodes.emplace_back(value);
 		c++;
 	}
 	fileList->updateFiles(fileEntries);

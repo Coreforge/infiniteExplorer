@@ -19,7 +19,7 @@ public:
 
 
 	// the order in these vectors has to match, i.e. the FileEntry* and the associated ModuleNode* have to have the same index
-	std::vector<ModuleNode*> fileEntryNodes;
+	//std::vector<ModuleNode*> fileEntryNodes;
 private:
 	std::vector<FileEntry*> fileEntries;
 	void exportMultiple();

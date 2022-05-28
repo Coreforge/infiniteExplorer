@@ -121,9 +121,9 @@ void FileList::onFrameClicked(){
 void FileList::onEntryDoubleClicked(Gtk::Button* button, GdkEventButton* event, FileEntry* entry){
 	if(event->type == GDK_2BUTTON_PRESS){
 		std::cout << "Double click!\n";
-		if(entry->onClickID != nullptr){
+		if(entry->onClick != nullptr){
 			// we have a function to call
-			entry->onClickID(entry->ID,entry->data);
+			entry->onClick(entry->nodeRef,entry->data);
 		}
 	}
 	if(event->type == GDK_BUTTON_PRESS){
@@ -230,12 +230,10 @@ void FileList::updateFiles(std::vector<FileEntry*> entries){
 	for(int i = 0; i < entries.size(); i++){
 		Gtk::Button* button = new Gtk::Button();
 		button->set_label(entries[i]->name);
-		if(entries[i]->onClickID != nullptr){
+		if(entries[i]->onClick != nullptr){
 			//button->signal_clicked().connect(sigc::bind(sigc::ptr_fun(entries[i]->onClickID),entries[i]->ID));
 			button->add_events(Gdk::BUTTON_PRESS_MASK);
 			//button->signal_button_press_event().connect([this,button] (GdkEventButton* event){return onEntryClicked(button, event, entries[i]);});
-		} else if(entries[i]->onClickPath != nullptr){
-			//button->signal_().connect(sigc::bind(sigc::ptr_fun(entries[i]->onClickPath),entries[i]->path));
 		}
 
 		Glib::RefPtr<Gtk::StyleContext> buttonContext = button->get_style_context();

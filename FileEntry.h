@@ -10,10 +10,7 @@ class FileEntry{
 public:
 	// onClick functions. If both aren't nullptr, onClickID has higher priority. Of none are set, nothing happens
 	// onClick with an ID passed to it to identify the associated file
-	void (*onClickID)(int,void*) = nullptr;
-
-	// onClick that takes a path
-	void (*onClickPath)(char*,void*) = nullptr;
+	void (*onClick)(void*,void*) = nullptr;
 
 	// this pointer gets passed to the onClick functions
 	void* data;
