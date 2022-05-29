@@ -369,7 +369,7 @@ void ModuleManager::searchNodesRecursive(ModuleNode* node, std::string query){
 		}
 		std::string cName(key);
 		cName = cleanSearchString(cName);
-		printf("cleaned: %s\n",cName.c_str());
+
 		// check if the query is in the name of the node
 		if(cName.find(query, 0) != cName.npos){
 			// the name contains the query, insert the node into the results list
