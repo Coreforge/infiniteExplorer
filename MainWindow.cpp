@@ -64,4 +64,5 @@ MainWindow::MainWindow(){
 	entries->emplace_back(entry4);
 	filelist->updateFiles(*entries);*/
 	moduleManager->fileList = filelist;
+	moduleManager->setupCallbacks();
 }

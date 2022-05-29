@@ -24,6 +24,8 @@ public:
 	void onFrameClicked();
 	void onKeyPressed(GdkEventKey* key);
 	void onKeyReleased(GdkEventKey* key);
+	void setSearchCallback(void (*onSearch)(void*,std::string), void* manager);
+	void onSearch();
 
 	Gtk::Label* currentPathLabel;
 	std::vector<std::pair<FileEntry*,Gtk::Button*>> selectedEntries;
@@ -38,6 +40,7 @@ private:
 	Gtk::Box* listBox;
 	Gtk::Box* internalLayoutBox;
 	Gtk::Box* controlBox;
+	Gtk::SearchEntry* searchBar;
 	//Gtk::Button* goUpButton;
 
 	void onResize();
@@ -49,6 +52,8 @@ private:
 	Glib::RefPtr<Gtk::CssProvider> cssProvider;
 	std::pair<FileEntry*,Gtk::Button*> activeEntry;
 
+	void (*onSearchCallback)(void*,std::string);
+	void* manager;
 	bool shiftPressed;
 	bool ctrlPressed;
 };

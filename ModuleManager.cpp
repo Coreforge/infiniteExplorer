@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <gtkmm.h>
 #include "ModuleManager.h"
+#include <algorithm>
 
 #ifdef _WIN64
 #include <windows.h>
@@ -9,6 +10,18 @@
 
 //#warning WIN64 detected
 #endif
+
+
+inline std::string cleanSearchString(std::string str){
+	str.erase(std::remove(str.begin(), str.end(), ' '),str.end());	// remove " "
+	str.erase(std::remove(str.begin(), str.end(), '_'),str.end());	// remove "_"
+	str.erase(std::remove(str.begin(), str.end(), '.'),str.end());	// remove "."
+
+	for(auto& c : str){
+		c = std::tolower(c);
+	}
+	return str;
+}
 
 void ModuleManager::openModuleDialog(){
 	printf("open\n");
@@ -311,11 +324,74 @@ void ModuleManager::buildNodeTree(){
 
 void showNodeCallback(void* node,void* data){
 	ModuleManager* manager = (ModuleManager*)data;
+	//manager->currentNode = (ModuleNode*)node;	// this needs to be set here now because setting it in showNode causes issues with the search
 	manager->showNode((ModuleNode*)node);
 }
 
-void ModuleManager::showNode(ModuleNode* node){
-	currentNode = node;	// this is the current node now
+void search(void* manager, std::string query){
+	// start by cleaning the query, then decide if we're actually going to search
+
+	query = cleanSearchString(query);
+	ModuleManager* man = (ModuleManager*)manager;
+
+	if(man->currentNode == nullptr)return;	// we can't search if there is nothing loaded
+	if(query == ""){
+		printf("displaying node\n");
+		man->showNode(man->currentNode);
+	}else{
+		// we have to actually search
+		printf("searching\n");
+
+		man->searchNodes(man->currentNode, query);
+	}
+
+}
+
+void ModuleManager::searchNodes(ModuleNode* from, std::string query){
+	// clean up the previous search, if there was one
+	searchNode.children.clear();
+	searchNode.parent = NULL;
+	searchNode.item = NULL;
+
+	// to search, just call the recursive search function, as there's nothing special from here on
+	searchNodesRecursive(from, query);
+
+	// the search either completed, or stopped after too many results. Just display the results now
+	showNode(&searchNode, true);
+}
+
+void ModuleManager::searchNodesRecursive(ModuleNode* node, std::string query){
+	for(auto const&[key,cNode] : node->children){
+		// clean up the name of the node, just like the query
+		if(searchNode.children.size() > SEARCH_MAX_RESULTS){
+			// we have too many results already, just return
+			return;
+		}
+		std::string cName(key);
+		cName = cleanSearchString(cName);
+		printf("cleaned: %s\n",cName.c_str());
+		// check if the query is in the name of the node
+		if(cName.find(query, 0) != cName.npos){
+			// the name contains the query, insert the node into the results list
+			searchNode.children.insert({key, cNode});
+		}
+
+		if(cNode->type == NODE_TYPE_DIRECTORY){
+			// search this directory too
+			searchNodesRecursive(cNode, query);
+		}
+	}
+}
+
+void ModuleManager::setupCallbacks(){
+	fileList->setSearchCallback(&search,this);
+}
+
+void ModuleManager::showNode(ModuleNode* node, bool outOfTree){
+	if(!outOfTree){
+		// this node is part of the regular tree, so we should update the current Node
+		currentNode = node;	// this is the current node now
+	}
 
 	// delete the old list, we don't want it anymore
 	for(int i = 0;i < fileEntries.size();i++){
@@ -323,22 +399,27 @@ void ModuleManager::showNode(ModuleNode* node){
 	}
 	fileEntries.clear();
 
-	// add the parent entry
-	FileEntry* parentEntry = new FileEntry();
-	parentEntry->name = "..";
-	parentEntry->ID = 0;
-	parentEntry->onClick = &showNodeCallback;
-	parentEntry->data = this;
-	parentEntry->type = FILE_TYPE_DIRECTORY;
-	parentEntry->nodeRef = node->parent;
-	fileEntries.emplace_back(parentEntry);
+	int c = 0;	// just counting up the ID
+
+	if(node->parent != NULL){
+		// add the parent entry
+		FileEntry* parentEntry = new FileEntry();
+		parentEntry->name = "..";
+		parentEntry->ID = 0;
+		parentEntry->onClick = &showNodeCallback;
+		parentEntry->data = this;
+		parentEntry->type = FILE_TYPE_DIRECTORY;
+		parentEntry->nodeRef = node->parent;
+		fileEntries.emplace_back(parentEntry);
+		c++;
+	}
 
 	//now build the new list
-	int c = 1;	// just counting up the ID
 	// iterating through the keys like this seems to already automatically alphabetically sort them, which is nice
-	for(auto const&[key,value] : currentNode->children){
+	for(auto const&[key,value] : node->children){
 		FileEntry* entry = new FileEntry();
 		entry->name = (char*)value->name.c_str();
+		entry->path = value->path;
 		entry->ID = c;
 		entry->onClick = &showNodeCallback;
 		entry->data = this;
@@ -355,9 +436,9 @@ void ModuleManager::showNode(ModuleNode* node){
 		c++;
 	}
 	fileList->updateFiles(fileEntries);
-	if(currentNode == rootNode){
+	if(node == rootNode){
 		fileList->currentPathLabel->set_text("/");
 	}else{
-		fileList->currentPathLabel->set_text(currentNode->path.c_str());
+		fileList->currentPathLabel->set_text(node->path.c_str());
 	}
 }

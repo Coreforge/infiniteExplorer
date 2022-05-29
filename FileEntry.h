@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 // file types, used for icons
 #define FILE_TYPE_FILE 0
@@ -16,7 +17,7 @@ public:
 	void* data;
 
 	int ID;
-	char* path;
+	std::string path;
 	char* name;
 
 

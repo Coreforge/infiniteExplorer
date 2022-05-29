@@ -21,6 +21,7 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	currentPathLabel = new Gtk::Label();
 	listScroller = new Gtk::ScrolledWindow();
 	pathScroller = new Gtk::ScrolledWindow();
+	searchBar = new Gtk::SearchEntry();
 
 
 	label->set_text("Files");
@@ -41,21 +42,18 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	listBox->show();
 	internalLayoutBox->set_property("orientation", Gtk::Orientation::ORIENTATION_VERTICAL);
 	internalLayoutBox->show();
+
+	//Search bar
+	searchBar->show();
+	internalLayoutBox->add(*searchBar);
+	searchBar->signal_search_changed().connect([this]{onSearch();});
+
+
+	// controls/Path
 	controlBox->set_property("orientation", Gtk::Orientation::ORIENTATION_HORIZONTAL);
 	controlBox->show();
 	frame->add(*internalLayoutBox);
 	internalLayoutBox->add(*controlBox);
-	//internalLayoutBox->add(*listBox);
-	listScroller->add(*listBox);
-	listScroller->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
-
-//#ifndef _WIN64
-	listScroller->set_propagate_natural_height(true);
-	//listScroller->set_property("propagate-natural-height", true);
-//#endif
-	internalLayoutBox->add(*listScroller);
-	listScroller->show();
-
 	pathScroller->add(*currentPathLabel);
 	controlBox->add(*pathScroller);
 	pathScroller->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_NEVER);
@@ -66,6 +64,20 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	//currentPathLabel->set_editable(false);
 	currentPathLabel->show();
 	pathScroller->show();
+	//internalLayoutBox->add(*listBox);
+
+	//List
+	listScroller->add(*listBox);
+	listScroller->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
+
+//#ifndef _WIN64
+	listScroller->set_propagate_natural_height(true);
+	//listScroller->set_property("propagate-natural-height", true);
+//#endif
+	internalLayoutBox->add(*listScroller);
+	listScroller->show();
+
+
 
 
 
@@ -86,6 +98,16 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 
 void FileList::onResize(){
 	printf("Resize!\n");
+}
+
+void FileList::setSearchCallback(void (*onSearch)(void*,std::string), void* manager){
+	this->onSearchCallback = onSearch;
+	this->manager = manager;
+}
+
+void FileList::onSearch(){
+	printf("Searching for %s\n",searchBar->get_text().c_str());
+	onSearchCallback(manager, searchBar->get_text());
 }
 
 void FileList::onKeyPressed(GdkEventKey* key){
@@ -252,6 +274,7 @@ void FileList::updateFiles(std::vector<FileEntry*> entries){
 		button->set_image_from_icon_name(iconName, Gtk::ICON_SIZE_SMALL_TOOLBAR);
 		button->set_always_show_image(true);
 		button->set_image_position(Gtk::PositionType::POS_LEFT);
+		button->set_tooltip_text(entries[i]->path);
 		button->set_property("xalign", 0.0);
 		listBox->add(*button);
 		button->show();
