@@ -16,6 +16,7 @@ public:
 	void showNode(ModuleNode* node, bool outOfTree = false);	// if outOfTree is set, currentNode won't be updated (for displaying stuff like search results)
 	void setupCallbacks();
 	void searchNodes(ModuleNode* from, std::string query);
+	std::pair<uint64_t,uint64_t> getSizes(ModuleNode* node);	// first is uncompressed, second is compressed
 	std::vector<Module*> modules;
 	ModuleNode* rootNode;
 	ModuleNode* currentNode = nullptr;

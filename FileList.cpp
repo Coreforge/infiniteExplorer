@@ -77,7 +77,15 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	internalLayoutBox->add(*listScroller);
 	listScroller->show();
 
-
+	// context menu stuff
+	contextMenu = new Gtk::Menu();
+	propertiesMenuItem = new Gtk::MenuItem("Properties");
+	propertiesMenuItem->show();
+	contextMenu->add(*propertiesMenuItem);
+	propertiesMenuItem->signal_activate().connect([this]{
+		propDialog.reset(new PropertiesDialog(propNode, manager));
+		propDialog->show();
+	});
 
 
 
@@ -150,6 +158,14 @@ void FileList::onEntryDoubleClicked(Gtk::Button* button, GdkEventButton* event, 
 	}
 	if(event->type == GDK_BUTTON_PRESS){
 		std::cout << "click!\n";
+		if(event->button == 3){
+			if(contextMenu->get_attach_widget()){
+				contextMenu->detach();
+			}
+			contextMenu->attach_to_widget(*button);
+			contextMenu->popup(event->button,event->time);
+			propNode = entry->nodeRef;
+		}
 	}
 }
 

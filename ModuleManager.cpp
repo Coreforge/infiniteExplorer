@@ -387,6 +387,25 @@ void ModuleManager::setupCallbacks(){
 	fileList->setSearchCallback(&search,this);
 }
 
+// first is uncompressed, second is compressed
+std::pair<uint64_t,uint64_t> ModuleManager::getSizes(ModuleNode* node){
+	uint64_t compressed = 0;
+	uint64_t uncompressed = 0;
+	if(node->type == NODE_TYPE_DIRECTORY){
+		for(auto const&[key,cNode] : node->children){
+			auto res = getSizes(cNode);
+			compressed += res.second;
+			uncompressed += res.first;
+		}
+	} else {
+		if(node->item){
+			compressed = node->item->compressedSize;
+			uncompressed = node->item->decompressedSize;
+		}
+	}
+	return {uncompressed, compressed};
+}
+
 void ModuleManager::showNode(ModuleNode* node, bool outOfTree){
 	if(!outOfTree){
 		// this node is part of the regular tree, so we should update the current Node

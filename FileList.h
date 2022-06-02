@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "FileEntry.h"
+#include "PropertiesDialog.h"
 
 //define icons
 #define FILE_TYPE_FILE_ICON "text-x-generic"
@@ -41,7 +42,16 @@ private:
 	Gtk::Box* internalLayoutBox;
 	Gtk::Box* controlBox;
 	Gtk::SearchEntry* searchBar;
+
+	// context menu stuff
+	Gtk::Menu* contextMenu;
+	Gtk::MenuItem* propertiesMenuItem;
 	//Gtk::Button* goUpButton;
+
+
+	//properties dialog
+	std::unique_ptr<PropertiesDialog> propDialog;
+
 
 	void onResize();
 
@@ -54,6 +64,7 @@ private:
 
 	void (*onSearchCallback)(void*,std::string);
 	void* manager;
+	void* propNode;
 	bool shiftPressed;
 	bool ctrlPressed;
 };
