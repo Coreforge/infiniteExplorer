@@ -11,6 +11,8 @@ MainWindow::MainWindow(){
 	ModuleManager* moduleManager = new ModuleManager;
 
 
+	set_icon_from_file("res/icons/ie-512x512.png");
+
 	accelGroup = Gtk::AccelGroup::create();
 	add_accel_group(accelGroup);
 
