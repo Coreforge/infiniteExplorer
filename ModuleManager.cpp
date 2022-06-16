@@ -226,7 +226,7 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 	//printf("Exporting to %s\n",newPath.c_str());
 	if(node->type == NODE_TYPE_FILE){
 		// finally a file, now export it!
-		FILE* out = fopen(newPath.c_str(),"w");
+		FILE* out = fopen(newPath.c_str(),"wb");
 		if(!node->item){
 			printf("Error: Node %s with type file doesn't have an associated item! Node will be skipped!\n",newPath.c_str());
 		}
