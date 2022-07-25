@@ -3,6 +3,9 @@
 #include "ModuleManager.h"
 #include <algorithm>
 
+
+#include "libInfinite/Item.h"
+
 #ifdef _WIN64
 #include <windows.h>
 #include <fileapi.h>
@@ -29,6 +32,15 @@ void ModuleManager::openModuleDialog(){
 	fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
 	fileChooser->add_button("_Open", Gtk::RESPONSE_OK);
 	fileChooser->set_select_multiple(true);
+	// try to open the default location for steam
+#ifdef _WIN64
+	// for windows
+	// this is just hard coded for now, but finding the steam library shouldn't be too hard either
+	fileChooser->set_current_folder("C:/Program Files (x86)/Steam/steamapps/common/Halo Infinite/deploy");
+#else
+	// linux
+	fileChooser->set_current_folder(Glib::getenv("HOME") + "/.steam/steam/steamapps/common/Halo Infinite/deploy");
+#endif
 	int response = fileChooser->run();
 	fileChooser->close();
 	if(response != Gtk::RESPONSE_OK){
@@ -54,6 +66,17 @@ void ModuleManager::openPathDialog(){
 	Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Load Modules from",Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
 	fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
 	fileChooser->add_button("_Open", Gtk::RESPONSE_OK);
+
+	// try to open the default location for steam
+#ifdef _WIN64
+	// for windows
+	// this is just hard coded for now, but finding the steam library shouldn't be too hard either
+	fileChooser->set_current_folder("C:/Program Files (x86)/Steam/steamapps/common/Halo Infinite");
+#else
+	// linux
+	fileChooser->set_current_folder(Glib::getenv("HOME") + "/.steam/steam/steamapps/common/Halo Infinite");
+#endif
+
 	int response = fileChooser->run();
 	fileChooser->close();
 	if(response != Gtk::RESPONSE_OK){
@@ -295,6 +318,7 @@ void ModuleManager::buildNodeTree(){
 	rootNode->path = "";
 	rootNode->name = "/";
 	rootNode->parent = rootNode;	// the roots parent is the root
+	rootNode->type = NODE_TYPE_DIRECTORY;
 	for(int m = 0; m < modules.size(); m++){
 		// each module
 		printf("Module %d\n",m);
@@ -325,6 +349,16 @@ void ModuleManager::buildNodeTree(){
 void showNodeCallback(void* node,void* data){
 	ModuleManager* manager = (ModuleManager*)data;
 	//manager->currentNode = (ModuleNode*)node;	// this needs to be set here now because setting it in showNode causes issues with the search
+	ModuleNode* nodeptr = (ModuleNode*)node;
+	if(nodeptr->type == NODE_TYPE_FILE){
+		// it's not a directory, so there's no point in displaying it. Try to load it instead
+		printf("Trying to load %s\n",nodeptr->path.c_str());
+
+		uint8_t* itmData = nodeptr->item->extractData();
+		Item itm(itmData, nodeptr->item->decompressedSize);
+		// we still don't want to display it in the file list
+		return;
+	}
 	manager->showNode((ModuleNode*)node);
 }
 
@@ -354,18 +388,20 @@ void ModuleManager::searchNodes(ModuleNode* from, std::string query){
 	searchNode.item = NULL;
 
 	// to search, just call the recursive search function, as there's nothing special from here on
-	searchNodesRecursive(from, query);
+	int index = 0;
+	searchNodesRecursive(from, query, index);
 
 	// the search either completed, or stopped after too many results. Just display the results now
 	showNode(&searchNode, true);
 }
 
-void ModuleManager::searchNodesRecursive(ModuleNode* node, std::string query){
+int ModuleManager::searchNodesRecursive(ModuleNode* node, std::string query, int index){
 	for(auto const&[key,cNode] : node->children){
 		// clean up the name of the node, just like the query
 		if(searchNode.children.size() > SEARCH_MAX_RESULTS){
 			// we have too many results already, just return
-			return;
+			printf("Reached search maximum!\n");
+			return index;
 		}
 		std::string cName(key);
 		cName = cleanSearchString(cName);
@@ -373,14 +409,19 @@ void ModuleManager::searchNodesRecursive(ModuleNode* node, std::string query){
 		// check if the query is in the name of the node
 		if(cName.find(query, 0) != cName.npos){
 			// the name contains the query, insert the node into the results list
-			searchNode.children.insert({key, cNode});
+			std::string newKey;
+
+			newKey  = key + "_" + std::to_string(index);	// to allow for multiple results with the same name. It shouldn't affect sorting otherwise
+			searchNode.children.insert({newKey, cNode});
+			index++;
 		}
 
 		if(cNode->type == NODE_TYPE_DIRECTORY){
 			// search this directory too
-			searchNodesRecursive(cNode, query);
+			index = searchNodesRecursive(cNode, query, index);
 		}
 	}
+	return index;
 }
 
 void ModuleManager::setupCallbacks(){

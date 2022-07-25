@@ -4,7 +4,7 @@
 #include "FileList.h"
 #include <string>
 
-#define SEARCH_MAX_RESULTS 1000 // stop searching after finding this many results. If too many results are displayed, it may make the GUI unresponsive, which makes it difficult to type a different query
+#define SEARCH_MAX_RESULTS 2000 // stop searching after finding this many results. If too many results are displayed, it may make the GUI unresponsive, which makes it difficult to type a different query
 
 class ModuleManager{
 public:
@@ -33,7 +33,7 @@ private:
 	void loadPathRecursive(std::string path);
 
 	// expects a cleaned up query
-	void searchNodesRecursive(ModuleNode* node, std::string query);
+	int searchNodesRecursive(ModuleNode* node, std::string query, int index);
 
 	// this node is used to display search results.
 	ModuleNode searchNode;
