@@ -105,7 +105,7 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 }
 
 void FileList::onResize(){
-	printf("Resize!\n");
+	//printf("Resize!\n");
 }
 
 void FileList::setSearchCallback(void (*onSearch)(void*,std::string), void* manager){
@@ -114,7 +114,7 @@ void FileList::setSearchCallback(void (*onSearch)(void*,std::string), void* mana
 }
 
 void FileList::onSearch(){
-	printf("Searching for %s\n",searchBar->get_text().c_str());
+	//printf("Searching for %s\n",searchBar->get_text().c_str());
 	onSearchCallback(manager, searchBar->get_text());
 }
 
@@ -150,14 +150,14 @@ void FileList::onFrameClicked(){
 
 void FileList::onEntryDoubleClicked(Gtk::Button* button, GdkEventButton* event, FileEntry* entry){
 	if(event->type == GDK_2BUTTON_PRESS){
-		std::cout << "Double click!\n";
+		//std::cout << "Double click!\n";
 		if(entry->onClick != nullptr){
 			// we have a function to call
 			entry->onClick(entry->nodeRef,entry->data);
 		}
 	}
 	if(event->type == GDK_BUTTON_PRESS){
-		std::cout << "click!\n";
+		//std::cout << "click!\n";
 		if(event->button == 3){
 			if(contextMenu->get_attach_widget()){
 				contextMenu->detach();
@@ -232,7 +232,7 @@ void FileList::onEntryClicked(Gtk::Button* button, FileEntry* entry){
 
 		// clear selection
 		for(int i = 0; i < selectedEntries.size(); i++){
-			std::cout << selectedEntries.size() << " selected Entries\n";
+			//std::cout << selectedEntries.size() << " selected Entries\n";
 			Glib::RefPtr<Gtk::StyleContext> context = selectedEntries[i].second->get_style_context();
 			selectedEntries[i].first->selected = false;
 			context->remove_class("selected");

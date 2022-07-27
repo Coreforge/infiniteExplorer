@@ -9,8 +9,8 @@ MainWindow::MainWindow(){
 	cssProvider->load_from_path("res/fileExplorer.css");
 
 	ModuleManager* moduleManager = new ModuleManager;
-
-
+	Logger* logger = new ConsoleLogger;
+	moduleManager->logger = logger;
 	set_icon_from_file("res/icons/ie-512x512.png");
 
 	accelGroup = Gtk::AccelGroup::create();

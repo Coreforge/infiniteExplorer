@@ -1,7 +1,10 @@
 #pragma once
 #include "libInfinite/module/Module.h"
+#include "libInfinite/logger/logger.h"
 #include "ModuleNode.h"
 #include "FileList.h"
+
+
 #include <string>
 
 #define SEARCH_MAX_RESULTS 2000 // stop searching after finding this many results. If too many results are displayed, it may make the GUI unresponsive, which makes it difficult to type a different query
@@ -21,6 +24,7 @@ public:
 	ModuleNode* rootNode;
 	ModuleNode* currentNode = nullptr;
 	FileList* fileList;
+	Logger* logger;
 
 
 	// the order in these vectors has to match, i.e. the FileEntry* and the associated ModuleNode* have to have the same index

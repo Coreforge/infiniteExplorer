@@ -3,7 +3,7 @@
 #include "ModuleManager.h"
 #include <algorithm>
 
-
+#include "libInfinite/logger/logger.h"
 #include "libInfinite/Item.h"
 
 #ifdef _WIN64
@@ -27,7 +27,7 @@ inline std::string cleanSearchString(std::string str){
 }
 
 void ModuleManager::openModuleDialog(){
-	printf("open\n");
+	//printf("open\n");
 	Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Load Module",Gtk::FILE_CHOOSER_ACTION_OPEN);
 	fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
 	fileChooser->add_button("_Open", Gtk::RESPONSE_OK);
@@ -44,15 +44,16 @@ void ModuleManager::openModuleDialog(){
 	int response = fileChooser->run();
 	fileChooser->close();
 	if(response != Gtk::RESPONSE_OK){
-		printf("cancel\n");
+		//printf("cancel\n");
 		return;
 	}
 	std::vector<std::string> files = fileChooser->get_filenames();
 	for(int i = 0; i < files.size(); i++){
-		printf("Opening file: %s\n",files[i].c_str());
+		//printf("Opening file: %s\n",files[i].c_str());
 		Module* mod = new Module();
+		mod->logger = logger;
 		mod->loadModule(files[i].c_str());
-		printf("Loaded module\n");
+		logger->log(LOG_LEVEL_INFO,"Loaded module\n");
 		modules.emplace_back(mod);
 	}
 
@@ -80,7 +81,7 @@ void ModuleManager::openPathDialog(){
 	int response = fileChooser->run();
 	fileChooser->close();
 	if(response != Gtk::RESPONSE_OK){
-		printf("cancel\n");
+		//printf("cancel\n");
 		return;
 	}
 
@@ -105,7 +106,7 @@ void ModuleManager::loadPathRecursive(std::string path){
 	dirHandle = FindFirstFile(searchPath.c_str(), &find);
 
 	if (dirHandle == INVALID_HANDLE_VALUE) {
-		printf("Could not open %s\n", path.c_str());
+		logger->log(LOG_LEVEL_WARNING,"Could not open %s\n", path.c_str());
 	}
 
 	do {
@@ -136,12 +137,12 @@ void ModuleManager::loadPathRecursive(std::string path){
 		}
 		if (name.substr(name.size() - 7, 7) == ".module") {
 			// extension should match
-			printf("Trying %s\n", cPath.c_str());
+			//printf("Trying %s\n", cPath.c_str());
 			Module* mod = new Module();
 			if (mod->loadModule(cPath.c_str())) {
 				// the module couldn't be loaded
 				mod->~Module();
-				printf("Failed to load module %s, skipping!\n", cPath.c_str());
+				logger->log(LOG_LEVEL_ERROR,"Failed to load module %s, skipping!\n", cPath.c_str());
 			}
 			else {
 				modules.emplace_back(mod);
@@ -156,7 +157,7 @@ void ModuleManager::loadPathRecursive(std::string path){
 	dir = opendir(path.c_str());	// open the current directory
 	if(!dir){
 		// something went wrong opening the directory
-		printf("Failed to open %s\n",path.c_str());
+		logger->log(LOG_LEVEL_WARNING,"Failed to open %s\n",path.c_str());
 	}
 	struct dirent* ent;
 	ent = readdir(dir);
@@ -167,14 +168,14 @@ void ModuleManager::loadPathRecursive(std::string path){
 		if(stat(cPath.c_str(),&buf)){
 			// something went wrong with stat
 			// report the error and just skip this entry
-			printf("Failed to stat %s!\n",cPath.c_str());
+			logger->log(LOG_LEVEL_WARNING,"Failed to stat %s!\n",cPath.c_str());	// warning because it might not be an actual issue
 			goto next;	// skip to the next entry
 			continue;
 		}
 		if(S_ISDIR(buf.st_mode)){
 			// another directory, check that one too
 			if(strncmp(ent->d_name,".",2) && strncmp(ent->d_name,"..",3)){
-				printf("Looking in %s\n",cPath.c_str());
+				//printf("Looking in %s\n",cPath.c_str());
 				loadPathRecursive(cPath);
 			}
 
@@ -189,12 +190,13 @@ void ModuleManager::loadPathRecursive(std::string path){
 			}
 			if(name.substr(name.size() - 7, 7) == ".module"){
 				// extension should match
-				printf("Trying %s\n",cPath.c_str());
+				//printf("Trying %s\n",cPath.c_str());
 				Module* mod = new Module();
+				mod->logger = logger;
 				if(mod->loadModule(cPath.c_str())){
 					// the module couldn't be loaded
 					mod->~Module();
-					printf("Failed to load module %s, skipping!\n",cPath.c_str());
+					logger->log(LOG_LEVEL_ERROR,"Failed to load module %s, skipping!\n",cPath.c_str());
 				} else {
 					modules.emplace_back(mod);
 				}
@@ -207,15 +209,15 @@ void ModuleManager::loadPathRecursive(std::string path){
 }
 
 void ModuleManager::exportEntryDialog(){
-	printf("Export\n");
+	//printf("Export\n");
 	if(fileList->selectedEntries.size() == 0){
 		// nothing selected, export everything currently visible
-		printf("nothing selected\n");
+		//logger->log(LOG_LEVEL_ERROR,"nothing selected\n");
 		exportMultiple();
 		return;
 	}
 	if(fileList->selectedEntries.size() == 1 && fileList->selectedEntries[0].first->type == FILE_TYPE_FILE){
-		printf("Export 1 file entry\n");
+		//printf("Export 1 file entry\n");
 		// export a single file, so we can use a save dialog and let the user choose the name
 		FileEntry* entry = fileList->selectedEntries[0].first;
 		Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Export",Gtk::FILE_CHOOSER_ACTION_SAVE);
@@ -230,10 +232,6 @@ void ModuleManager::exportEntryDialog(){
 	}
 	// multiple entries selected, only let the user choose a directory to export to
 	exportMultiple();
-}
-
-void ModuleManager::exportEntry(std::string path){
-
 }
 
 void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath){
@@ -251,7 +249,7 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 		// finally a file, now export it!
 		FILE* out = fopen(newPath.c_str(),"wb");
 		if(!node->item){
-			printf("Error: Node %s with type file doesn't have an associated item! Node will be skipped!\n",newPath.c_str());
+			logger->log(LOG_LEVEL_ERROR,"Node %s with type file doesn't have an associated item! Node will be skipped!\n",newPath.c_str());
 		}
 		void* data = node->item->extractData();
 		fwrite(data,1,node->item->decompressedSize,out);
@@ -271,7 +269,8 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 			// some error occurred, but that doesn't have to be a problem. The directory might just already exist
 			if(errno != EEXIST){
 				// something else happened. Now it's probably a problem
-				printf("Failed to create directory %s with error %d\n",newPath.c_str(),errno);
+				logger->log(LOG_LEVEL_ERROR,"Failed to create directory %s with error %d\n",newPath.c_str(),errno);	// here having issues with directories is a problem, as we need to be able to write to them.
+				// when searching for modules it doesn't matter as much, as we just ignore any that might be in the directory
 			}
 		}
 		for(auto const&[name,currentNode] : node->children){
@@ -280,7 +279,7 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 	} else {
 		// this shouldn't happen. There should only be files or directories
 		// if this ever gets reached, the node probably wasn't initialized correctly, memory got corrupted, or I forgot something
-		printf("Error exporting node! Unknown node type!\n");
+		logger->log(LOG_LEVEL_CRITICAL,"Error exporting node! Unknown node type!\n");
 	}
 }
 
@@ -321,7 +320,7 @@ void ModuleManager::buildNodeTree(){
 	rootNode->type = NODE_TYPE_DIRECTORY;
 	for(int m = 0; m < modules.size(); m++){
 		// each module
-		printf("Module %d\n",m);
+		//printf("Module %d\n",m);
 		for(auto const&[key,value] : modules[m]->items){
 			//printf("Item!\n");
 			std::stringstream stream(key);
@@ -352,10 +351,10 @@ void showNodeCallback(void* node,void* data){
 	ModuleNode* nodeptr = (ModuleNode*)node;
 	if(nodeptr->type == NODE_TYPE_FILE){
 		// it's not a directory, so there's no point in displaying it. Try to load it instead
-		printf("Trying to load %s\n",nodeptr->path.c_str());
+		//printf("Trying to load %s\n",nodeptr->path.c_str());
 
 		uint8_t* itmData = nodeptr->item->extractData();
-		Item itm(itmData, nodeptr->item->decompressedSize);
+		Item itm(itmData, nodeptr->item->decompressedSize, manager->logger);
 		// we still don't want to display it in the file list
 		return;
 	}
@@ -370,11 +369,11 @@ void search(void* manager, std::string query){
 
 	if(man->currentNode == nullptr)return;	// we can't search if there is nothing loaded
 	if(query == ""){
-		printf("displaying node\n");
+		//printf("displaying node\n");
 		man->showNode(man->currentNode);
 	}else{
 		// we have to actually search
-		printf("searching\n");
+		//printf("searching\n");
 
 		man->searchNodes(man->currentNode, query);
 	}
@@ -400,7 +399,7 @@ int ModuleManager::searchNodesRecursive(ModuleNode* node, std::string query, int
 		// clean up the name of the node, just like the query
 		if(searchNode.children.size() > SEARCH_MAX_RESULTS){
 			// we have too many results already, just return
-			printf("Reached search maximum!\n");
+			logger->log(LOG_LEVEL_DEBUG,"Reached search maximum!\n");
 			return index;
 		}
 		std::string cName(key);
