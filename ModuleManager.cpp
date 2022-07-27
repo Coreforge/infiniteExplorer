@@ -139,6 +139,7 @@ void ModuleManager::loadPathRecursive(std::string path){
 			// extension should match
 			//printf("Trying %s\n", cPath.c_str());
 			Module* mod = new Module();
+			mod->logger = logger;
 			if (mod->loadModule(cPath.c_str())) {
 				// the module couldn't be loaded
 				mod->~Module();
