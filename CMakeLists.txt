@@ -46,7 +46,7 @@ endif()
 
 set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 17)
 
-set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp ModuleManager.cpp PropertiesDialog.cpp)
+set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp ModuleManager.cpp PropertiesDialog.cpp LogViewer.cpp LogManager.cpp ManagedLogger.cpp)
 
 target_sources(infiniteExplorer PRIVATE ${sources})
 

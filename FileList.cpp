@@ -31,7 +31,7 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	//Gtk::Allocation alloc;
 	//alloc.set_width(150);
 	frame->set_label_align(0.5, 0.5);
-	frame->set_size_request(150, 300);
+	frame->set_size_request(450, 300);
 
 	evtBox->add(*frame);
 	parent->add(*evtBox);
@@ -76,6 +76,7 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 //#endif
 	internalLayoutBox->add(*listScroller);
 	listScroller->show();
+	listScroller->set_vexpand(true);
 
 	// context menu stuff
 	contextMenu = new Gtk::Menu();

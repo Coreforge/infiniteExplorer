@@ -1,5 +1,9 @@
 #include "MainWindow.h"
 
+#include "LogViewer.h"
+#include "LogManager.h"
+#include "ManagedLogger.h"
+
 MainWindow::MainWindow(){
 
 	set_border_width(10);
@@ -8,15 +12,24 @@ MainWindow::MainWindow(){
 	Glib::RefPtr<Gtk::CssProvider> cssProvider = Gtk::CssProvider::create();
 	cssProvider->load_from_path("res/fileExplorer.css");
 
+	// set up the logging backend
+	// don't set the TextBuffer yet, we'll do that once the LogViewer exists
+	LogManager* logManager = new LogManager(15000,LOG_LEVEL_ERROR,nullptr);
+	ManagedLogger* libInfiniteLogger = new ManagedLogger("[libInfinite]",logManager);
+
 	ModuleManager* moduleManager = new ModuleManager;
-	Logger* logger = new ConsoleLogger;
-	moduleManager->logger = logger;
+	//Logger* logger = new ConsoleLogger;
+	moduleManager->logger = (Logger*)libInfiniteLogger;
+
+
+	// logging backend is done
+
 	set_icon_from_file("res/icons/ie-512x512.png");
 
 	accelGroup = Gtk::AccelGroup::create();
 	add_accel_group(accelGroup);
 
-	Gtk::Box* mainVBox = new Gtk::Box();
+	Gtk::Box* mainVBox = new Gtk::Box();	// this box contains two things. The menu bar, and a grid that contains everything else
 	this->add(*mainVBox);
 	mainVBox->set_property("orientation", Gtk::Orientation::ORIENTATION_VERTICAL);
 	mainVBox->show();
@@ -49,8 +62,18 @@ MainWindow::MainWindow(){
 	openPathItem->show();
 	openPathItem->signal_activate().connect([moduleManager] {moduleManager->openPathDialog();});
 
+	// the menu bar is done, now set up the grid
+	Gtk::Grid* grid = new Gtk::Grid();
+	grid->show();
+	mainVBox->add(*grid);
 
-	FileList* filelist = new FileList(mainVBox,builder);
+	// the FileList wants a container to be passed to it, and Gtk::Grid needs children added a bit differently
+	// so I'm putting a box into the grid, which then gets passed to the FileList. This is a bit inefficient, but not too bad
+	Gtk::Box* fileBox = new Gtk::Box();
+	fileBox->show();
+	grid->attach(*fileBox, 0, 0, 1, 1);	// the file list should be on the left
+
+	FileList* filelist = new FileList(fileBox,builder);
 	/*FileEntry* entry1 = new FileEntry();
 	FileEntry* entry2 = new FileEntry();
 	FileEntry* entry3 = new FileEntry();
@@ -67,4 +90,10 @@ MainWindow::MainWindow(){
 	filelist->updateFiles(*entries);*/
 	moduleManager->fileList = filelist;
 	moduleManager->setupCallbacks();
+
+	// file list is done, now set up the log front end
+
+
+	LogViewer* logViewer = new LogViewer(logManager);
+	grid->attach(*logViewer, 0, 1, 1, 1);
 }
