@@ -10,7 +10,7 @@ LogViewer::LogViewer(LogManager* manager){
 	frame->set_label_align(0.5, 0.5);
 	add(*frame);
 	frame->add(*scrolledWindow);
-	frame->set_size_request(150, 350);
+	frame->set_size_request(1000, 150);
 	frame->show();
 
 	scrolledWindow->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
@@ -22,8 +22,10 @@ LogViewer::LogViewer(LogManager* manager){
 	show();
 	//set_property("expand", true);
 	textView->set_property("hexpand", true);
-	textView->set_size_request(150, 350);
+	textView->set_vexpand(false);
+	//textView->set_size_request(1000, 350);
 	textView->set_editable(false);
+
 
 
 	this->manager = manager;

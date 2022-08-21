@@ -63,15 +63,25 @@ MainWindow::MainWindow(){
 	openPathItem->signal_activate().connect([moduleManager] {moduleManager->openPathDialog();});
 
 	// the menu bar is done, now set up the grid
-	Gtk::Grid* grid = new Gtk::Grid();
-	grid->show();
-	mainVBox->add(*grid);
+	//Gtk::Grid* grid = new Gtk::Grid();
+	//grid->show();
+
+	// The Paned that contains the log output and another paned
+	Gtk::Paned* mainPaned = new Gtk::Paned(Gtk::ORIENTATION_VERTICAL);
+	mainPaned->show();
+	// The Paned inside the main paned, containing the file list and whatever editor/viewer is open
+	Gtk::Paned* contentPaned = new Gtk::Paned(Gtk::ORIENTATION_HORIZONTAL);
+	contentPaned->show();
+	mainVBox->add(*mainPaned);
+	mainPaned->pack1(*contentPaned, true, false);
+
 
 	// the FileList wants a container to be passed to it, and Gtk::Grid needs children added a bit differently
 	// so I'm putting a box into the grid, which then gets passed to the FileList. This is a bit inefficient, but not too bad
 	Gtk::Box* fileBox = new Gtk::Box();
 	fileBox->show();
-	grid->attach(*fileBox, 0, 0, 1, 1);	// the file list should be on the left
+	contentPaned->pack1(*fileBox, false, false);
+	//grid->attach(*fileBox, 0, 0, 1, 1);	// the file list should be on the left
 
 	FileList* filelist = new FileList(fileBox,builder);
 	/*FileEntry* entry1 = new FileEntry();
@@ -95,5 +105,6 @@ MainWindow::MainWindow(){
 
 
 	LogViewer* logViewer = new LogViewer(logManager);
-	grid->attach(*logViewer, 0, 1, 1, 1);
+	mainPaned->pack2(*logViewer, false, true);
+	//grid->attach(*logViewer, 0, 1, 1, 1);
 }
