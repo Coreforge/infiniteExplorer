@@ -1,0 +1,51 @@
+name: CMake
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build-windows:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # check out submodules too (libInfinite)
+        submodules: recursive
+        
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        # install gcc, cmake and gtkmm3
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-gtkmm3 mingw-w64-x86_64-cmake
+    
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOODLE_LIBRARY=${{github.workspace}}/libInfinite/oo2core_8_win64.dll
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Upload a Build Artifact
+      # upload the resulting binary. 
+      # Libraries and resources are not uploaded as they don't change as much and should be usable from the latest release or can be copied from the repository without the need to compile anything
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: infiniteExplorer
+        path: ${{github.workspace}}/build/infiniteExplorer.exe
+      
