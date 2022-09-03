@@ -77,6 +77,7 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	internalLayoutBox->add(*listScroller);
 	listScroller->show();
 	listScroller->set_vexpand(true);
+	listScroller->set_hexpand(true);
 
 	// context menu stuff
 	contextMenu = new Gtk::Menu();

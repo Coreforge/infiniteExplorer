@@ -35,6 +35,7 @@ PropertiesDialog::PropertiesDialog(void* node, void* manager){
 	nameValueLabel->set_halign(Gtk::ALIGN_START);
 	nameLabel->show();
 	nameValueLabel->show();
+	nameValueLabel->set_selectable(true);
 	r++;
 
 	// Item name
@@ -46,19 +47,21 @@ PropertiesDialog::PropertiesDialog(void* node, void* manager){
 	pathValueLabel->set_halign(Gtk::ALIGN_START);
 	pathLabel->show();
 	pathValueLabel->show();
+	pathValueLabel->set_selectable(true);
 	r++;
 
 	// using if since a folder may be in multiple modules and I'm too lazy to check that, so I'm just not displaying it for now
 	if(nodeRef->type != NODE_TYPE_DIRECTORY){
 		// Module path
 		Gtk::Label* moduleLabel = Gtk::make_managed<Gtk::Label>("Module: ");
-		Gtk::Label* moduleValueLabel = Gtk::make_managed<Gtk::Label>(nodeRef->item->module->name);
+		Gtk::Label* moduleValueLabel = Gtk::make_managed<Gtk::Label>(nodeRef->item->module->path);
 		mainGrid->attach(*moduleLabel, 0, r);
 		mainGrid->attach(*moduleValueLabel, 1, r);
 		moduleLabel->set_halign(Gtk::ALIGN_START);
 		moduleValueLabel->set_halign(Gtk::ALIGN_START);
 		moduleLabel->show();
 		moduleValueLabel->show();
+		moduleValueLabel->set_selectable(true);
 		r++;
 	}
 

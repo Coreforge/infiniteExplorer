@@ -3,6 +3,8 @@
 #include "LogViewer.h"
 #include "LogManager.h"
 #include "ManagedLogger.h"
+#include "FileViewerManager.h"
+
 
 MainWindow::MainWindow(){
 
@@ -107,4 +109,13 @@ MainWindow::MainWindow(){
 	LogViewer* logViewer = new LogViewer(logManager);
 	mainPaned->pack2(*logViewer, false, true);
 	//grid->attach(*logViewer, 0, 1, 1, 1);
+
+
+	// set up the file viewer stuff
+
+	FileViewerManager* fileViewerManager = new FileViewerManager();
+	fileViewerManager->show();
+	moduleManager->fileViewerManager = fileViewerManager;
+	contentPaned->pack2(*fileViewerManager, true, false);
+
 }

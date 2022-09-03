@@ -3,6 +3,7 @@
 #include "libInfinite/logger/logger.h"
 #include "ModuleNode.h"
 #include "FileList.h"
+#include "FileViewerManager.h"
 
 
 #include <string>
@@ -25,6 +26,8 @@ public:
 	ModuleNode* currentNode = nullptr;
 	FileList* fileList;
 	Logger* logger;
+
+	FileViewerManager* fileViewerManager;
 
 
 	// the order in these vectors has to match, i.e. the FileEntry* and the associated ModuleNode* have to have the same index

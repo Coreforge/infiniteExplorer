@@ -355,7 +355,9 @@ void showNodeCallback(void* node,void* data){
 		//printf("Trying to load %s\n",nodeptr->path.c_str());
 
 		uint8_t* itmData = nodeptr->item->extractData();
-		Item itm(itmData, nodeptr->item->decompressedSize, manager->logger);
+		Item* itm = new Item(itmData, nodeptr->item->decompressedSize, manager->logger, nodeptr->name, nodeptr->path);
+		free(itmData);
+		manager->fileViewerManager->addItem(itm);
 		// we still don't want to display it in the file list
 		return;
 	}
