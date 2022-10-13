@@ -10,7 +10,7 @@ To use them, download and unpack the archive and run the executable. The windows
 ## Nightly
 Nightly builds are currently only available for windows (if you'd like nighly builds for linux as well, please open an issue and I can add a job for linux too).
 
-You can download the latest nightly build at (https://nightly.link/Coreforge/infiniteExplorer/workflows/cmake/master/infiniteExplorer.zip)[https://nightly.link/Coreforge/infiniteExplorer/workflows/cmake/master/infiniteExplorer.zip]
+You can download the latest nightly build at https://nightly.link/Coreforge/infiniteExplorer/workflows/cmake/master/infiniteExplorer.zip
 
 To run a nightly build, download the latest release, unpack it, and replace infiniteExplorer.exe with the exe from the nightly build. 
 <br>Resource files likely won't be added very often as most things are done in code, including UI layout, but if the program crashes with an error saying some file could not be opened, download the missing file from this repository and place it in the location where the program is looking for it. 
