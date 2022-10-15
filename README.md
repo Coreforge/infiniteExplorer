@@ -3,6 +3,17 @@ A GUI frontend for libInfinite
 
 libInfinite is based on HIMU by MontagueM (https://github.com/MontagueM/HaloInfiniteModuleUnpacker).
 
+# Download
+## Stable
+The releases on github should be somewhat stable. 
+To use them, download and unpack the archive and run the executable. The windows releases contain all required libraries, on linux, GTKmm3 has to be installed (at least version 3.24).
+## Nightly
+Nightly builds are currently only available for windows (if you'd like nighly builds for linux as well, please open an issue and I can add a job for linux too).
+
+You can download the latest nightly build at https://nightly.link/Coreforge/infiniteExplorer/workflows/cmake/master/infiniteExplorer.zip
+
+To run a nightly build, download the latest release, unpack it, and replace infiniteExplorer.exe with the exe from the nightly build. 
+<br>Resource files likely won't be added very often as most things are done in code, including UI layout, but if the program crashes with an error saying some file could not be opened, download the missing file from this repository and place it in the location where the program is looking for it. 
 
 # Building
 ## Linux
@@ -20,21 +31,22 @@ make
 ```
 
 ## Windows
-Building for windows is a bit more complicated, and I haven't been able to get it to fully work yet on windows.
-Since I haven't been able to find a new enough version of gtkmm3 (at least 3.22) for msvc, I only got a fully functional build with mingw64.
+InfiniteExplorer can be built on Windows using mingw64. Since at least GTK3.24 is needed, not all mingw64 packages will work, as some only provide older versions (Cygwin only has 3.22, which is too old). I recommend MSYS2.
 
-First install mingw64, and then install mingw-w64-x86_64-gtkmm3
+The packages which have to be installed MSYS2 are
+```
+mingw-w64-x86_64-gcc
+mingw-w64-x86_64-gtkmm3
+mingw-w64-x86_64-cmake
+```
 
-Ideally, the rest should be the same as on linux, except that oodle has to be specified manually
+The build process is like it is on linux, except that oodle has to be specified manually
 ```
 mkdir build
 cd build
 cmake -DOODLE_LIBRARY=<path/to/oodle.dll> ..
 make
 ```
-I have not been able to get this to work yet though, so I had to cross-compile from linux, using quasi-msys2 to download gtkmm3 and its dependencies,
-and then use a cmake toolchain file to manually point cmake to gtkmm and its dependencies. The DLLs needed to run infiniteExplorer also have to be copied manually
-(I just copied all from the lib folder from quasi-msys2, as I don't have other packages installed there), the gdk-pixbuf loaders have to be copied from the lib/ folder
-into a lib/ folder in the same directory as infiniteExplorer.exe, and the GSettings schema and icons have to be copied into a share/ folder.
-
-The code should be compatible with msvc though, so with a new enough version of gtkmm3 for msvc, it should compile and run successfully as well.
+You can run the resulting infiniteExplorer.exe from within the mingw64 shell, but if you want to use it outside of the mingw64 environment, you'll need to copy the required DLLs into the folder that the exe is in (I don't know for certain which ones are needed, I just copied all except the ones that didn't look like they were needed, so there are probably some unneeded ones in the releases).
+The gdk-pixbuf loaders have to be copied from the lib/ folder into a lib/ folder in the same directory as infiniteExplorer.exe, and the GSettings schema and icons have to be copied into a share/ folder.
+The libraries, pixbuf-loaders, GSettings schema and icon theme can just be copied from the mingw64 root.
