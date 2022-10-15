@@ -16,7 +16,7 @@ MainWindow::MainWindow(){
 
 	// set up the logging backend
 	// don't set the TextBuffer yet, we'll do that once the LogViewer exists
-	LogManager* logManager = new LogManager(15000,LOG_LEVEL_ERROR,nullptr);
+	LogManager* logManager = new LogManager(0x100000,LOG_LEVEL_ERROR,nullptr);
 	ManagedLogger* libInfiniteLogger = new ManagedLogger("[libInfinite]",logManager);
 
 	ModuleManager* moduleManager = new ModuleManager;

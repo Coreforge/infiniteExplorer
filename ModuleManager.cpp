@@ -14,6 +14,8 @@
 //#warning WIN64 detected
 #endif
 
+// excludes files from the file list if their data isn't actually present in the modules
+#define IGNORE_BROKEN_FILES 1
 
 inline std::string cleanSearchString(std::string str){
 	str.erase(std::remove(str.begin(), str.end(), ' '),str.end());	// remove " "
@@ -251,8 +253,13 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 		FILE* out = fopen(newPath.c_str(),"wb");
 		if(!node->item){
 			logger->log(LOG_LEVEL_ERROR,"Node %s with type file doesn't have an associated item! Node will be skipped!\n",newPath.c_str());
+			return;
 		}
 		void* data = node->item->extractData();
+		if(data == nullptr){
+			// libInfinite should already log whatever error occured, so there's no need to do it here
+			return;
+		}
 		fwrite(data,1,node->item->decompressedSize,out);
 		free(data);	// free the buffer again, as it's not needed anymore
 		fclose(out);	// close the file again. It's done now
@@ -324,6 +331,10 @@ void ModuleManager::buildNodeTree(){
 		//printf("Module %d\n",m);
 		for(auto const&[key,value] : modules[m]->items){
 			//printf("Item!\n");
+			if(value->dataOffset > modules[m]->data_size && IGNORE_BROKEN_FILES){
+				// the actual data for this file is missing, so it's not getting added to the tree, as there is no point in doing so
+				continue;
+			}
 			std::stringstream stream(key);
 			std::string part;
 			ModuleNode* currentParent = rootNode;
@@ -355,6 +366,10 @@ void showNodeCallback(void* node,void* data){
 		//printf("Trying to load %s\n",nodeptr->path.c_str());
 
 		uint8_t* itmData = nodeptr->item->extractData();
+		if(itmData == nullptr){
+			// libInfinite already logged the error, no need to do it again
+			return;
+		}
 		Item* itm = new Item(itmData, nodeptr->item->decompressedSize, manager->logger, nodeptr->name, nodeptr->path);
 		free(itmData);
 		manager->fileViewerManager->addItem(itm);
