@@ -104,6 +104,9 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	cssProvider = Gtk::CssProvider::create();
 	cssProvider->load_from_path("res/fileExplorer.css");
 	selectedEntries.clear();
+
+	shiftPressed = false;
+	ctrlPressed = false;
 }
 
 void FileList::onResize(){
