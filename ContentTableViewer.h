@@ -11,6 +11,7 @@
 class ContentTableViewer : public Gtk::Box{
 public:
 	ContentTableViewer();
+	~ContentTableViewer();
 	void setItem(Item* item);
 	void setShowDataCallback(std::function<void(int)> callback);
 

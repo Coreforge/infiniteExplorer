@@ -10,6 +10,7 @@ class DataTableViewer : public Gtk::Box{
 
 public:
 	DataTableViewer();
+	~DataTableViewer();
 	void setItem(Item* item);
 	void selectEntry(int index);
 

@@ -1,9 +1,10 @@
 #include "ClosableTab.h"
 
-ClosableTab::ClosableTab(std::string name, std::string path, void* manager,void (*closeCallback)(std::string, void*)){
+ClosableTab::ClosableTab(std::string name, std::string path, void* manager,void* ref, void (*closeCallback)(void*, std::string, void*)){
 	this->name = name;
 	this->path = path;
 	this->man = manager;
+	this->ref = ref;
 	this->closeCallback = closeCallback;
 
 	label = new Gtk::Label(name);
@@ -13,7 +14,7 @@ ClosableTab::ClosableTab(std::string name, std::string path, void* manager,void 
 	button->set_relief(Gtk::RELIEF_NONE);
 
 	button->signal_clicked().connect([this] {
-		this->closeCallback(this->path,this->man);
+		this->closeCallback(this->ref,this->path,this->man);
 	});
 
 	set_orientation(Gtk::ORIENTATION_HORIZONTAL);

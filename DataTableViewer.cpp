@@ -19,7 +19,7 @@ DataTableViewer::DataTableViewer(){
 
 	view = new Gtk::TreeView(store);
 
-	Gtk::CellRendererText* OffsetRenderer = new Gtk::CellRendererText();
+	//Gtk::CellRendererText* OffsetRenderer = new Gtk::CellRendererText();
 	OffsetViewColumn = new Gtk::TreeViewColumn("Offset",OffsetColumn);
 	SizeViewColumn = new Gtk::TreeViewColumn("Size",SizeColumn);
 	RegionViewColumn = new Gtk::TreeViewColumn("Region",RegionColumn);
@@ -93,6 +93,17 @@ DataTableViewer::DataTableViewer(){
 	this->item = nullptr;
 }
 
+DataTableViewer::~DataTableViewer(){
+	delete exportDialog;
+	delete exportButton;
+	delete viewFrame;
+	delete scroller;
+	delete OffsetViewColumn;
+	delete SizeViewColumn;
+	delete RegionViewColumn;
+	delete view;
+}
+
 void DataTableViewer::setItem(Item* item){
 	this->item = item;
 	populateTable(&item->dataTable);
@@ -104,6 +115,11 @@ void DataTableViewer::selectEntry(int index){
 }
 
 void DataTableViewer::populateTable(DataTable* table){
+	if(this->item == nullptr){
+		store->clear();
+		entries.clear();
+		return;
+	}
 	store->clear();
 	entries.clear();
 	entries.reserve(table->entries.size());

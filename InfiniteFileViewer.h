@@ -12,6 +12,7 @@ class InfiniteFileViewer : public Gtk::Frame{
 public:
 	InfiniteFileViewer();
 	void setItem(Item* item);
+	~InfiniteFileViewer();
 
 
 private:

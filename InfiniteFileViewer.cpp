@@ -23,3 +23,9 @@ void InfiniteFileViewer::setItem(Item* item){
 	dataTableViewer->setItem(item);
 	contentTableViewer->setItem(item);
 }
+
+InfiniteFileViewer::~InfiniteFileViewer(){
+	delete contentTableViewer;
+	delete dataTableViewer;
+	delete notebook;
+}

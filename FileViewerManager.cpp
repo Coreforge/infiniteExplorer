@@ -2,18 +2,23 @@
 
 
 
-void closeCallback(std::string path, void* man){
+void closeCallback(void* ref, std::string path, void* man){
 	FileViewerManager* manager = (FileViewerManager*)man;
-
-	Gtk::Label* lab = manager->items[path].second;
+	InfiniteFileViewer* viewer = (InfiniteFileViewer*)ref;
+	//Gtk::Label* lab = manager->items[path].second;
 	//int idx = manager->itemNotebook->page_num(*lab);
-	manager->itemNotebook->remove_page(*lab);
+	manager->itemNotebook->remove_page(*viewer);
+	delete viewer;
 	manager->items.erase(path);
+	/*if(manager->itemNotebook->get_n_pages() == 0){
+		// no pages open anymore
+		manager->viewer->setItem(nullptr);	// nullptr displays no item
+	}*/
 }
 
 void switchCallback(std::string path, void* man){
 	FileViewerManager* manager = (FileViewerManager*)man;
-	manager->viewer->setItem(manager->items[path].first);
+	//manager->viewer->setItem(manager->items[path].first);
 
 }
 
@@ -51,9 +56,9 @@ FileViewerManager::FileViewerManager(){
     stack->show();
     //mainBox->add(*stack);
 
-    viewer = new InfiniteFileViewer();
+    /*viewer = new InfiniteFileViewer();
     mainBox->add(*viewer);
-    viewer->show();
+    viewer->show();*/
 
 
     itemNotebook->signal_switch_page().connect([this] (Gtk::Widget* page, guint idx){
@@ -61,7 +66,7 @@ FileViewerManager::FileViewerManager(){
     	for(auto const&[path,pair] : items){
     		if(page == pair.second){
     			// found it
-    			switchCallback(path, this);
+    			//switchCallback(path, this);
 
     		}
     	}
@@ -82,17 +87,19 @@ void FileViewerManager::addItem(Item* item){
 		return;
 	}
 
-	Gtk::Label* lab = new Gtk::Label();
+	InfiniteFileViewer* viewer = new InfiniteFileViewer();
+	viewer->setItem(item);
+	viewer->show();
 	//stack->add(*lab,"Page","Page 1");
 
-	ClosableTab* tab = new ClosableTab(item->name, item->path,this,&closeCallback);
+	ClosableTab* tab = new ClosableTab(item->name, item->path,this,viewer,&closeCallback);
 	tab->show();
-	itemNotebook->append_page(*lab, *tab);
+	itemNotebook->append_page(*viewer, *tab);
 
-	items.insert({item->path,{item,lab}});
+	items.insert({item->path,{item,viewer}});
 
 	// the label isn't shown on purpose, as
-	lab->set_text("");
+	/*lab->set_text("");
 	lab->show();
-	lab->set_lines(0);
+	lab->set_lines(0);*/
 }

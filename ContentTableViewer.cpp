@@ -111,6 +111,22 @@ ContentTableViewer::ContentTableViewer() {
 	settingsBox->add(*typeDisplayModeBox);
 }
 
+ContentTableViewer::~ContentTableViewer(){
+	delete typeDisplayModeBox;
+	delete typeDisplayModeLabel;
+	delete settingsSeparator;
+	delete settingsLabel;
+	delete settingsBox;
+	delete viewFrame;
+	delete scroller;
+	delete TypeViewColumn;
+	delete RefViewColumn;
+	delete RefSizeViewColumn;
+	delete ParentViewColumn;
+	delete view;
+	deleteTree();
+}
+
 void ContentTableViewer::setShowDataCallback(std::function<void(int)> callback){
 	showDataCallback = callback;
 }
@@ -191,6 +207,11 @@ std::string ContentTableViewer::getTypeString(TypeGUID type){
 void ContentTableViewer::setItem(Item* item){
 	this->item = item;
 	deleteTree();
+	if(item == nullptr){
+		store->clear();
+		printf("null\n");
+		return;
+	}
 	generateTree(true);	//TODO: add this setting
 	fillStore();
 }
@@ -284,6 +305,8 @@ void ContentTableViewer::generateTree(bool tree){
 			tmpVec[i]->hasParent = true;
 			// add this entry to the parents children vector
 			tmpVec[item->contentTable.entries[i].parent]->children.emplace_back(tmpVec[i]);
+		} else {
+			tmpVec[i]->hasParent = false;
 		}
 	}
 

@@ -17,7 +17,7 @@ public:
 	void addItem(Item* item);
 
 
-	std::map<std::string,std::pair<Item*, Gtk::Label*>> items;
+	std::map<std::string,std::pair<Item*, InfiniteFileViewer*>> items;
 	Gtk::Notebook* itemNotebook;
 
 private:
