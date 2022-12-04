@@ -10,7 +10,13 @@ add_executable(infiniteExplorer)
 set(INFINITE_EXPORT_OODLE ON)
 set(INFINITE_COPY_OODLE_DLL ON)
 set(INFINITE_OODLE_DLL oo2core_8_win64.dll)
-add_subdirectory(libInfinite/)
+if(NOT DEFINED LIBINFINITE)
+	add_subdirectory(libInfinite/)
+else()
+	add_library(Infinite UNKNOWN IMPORTED)
+	message(STATUS "Using libInfinite from ${LIBINFINITE}")
+	set_target_properties(Infinite PROPERTIES IMPORTED_LOCATION ${LIBINFINITE})
+endif()
 
 # all of this copying around is needed with linoodle because linoodle expects the dll to be in the cwd
 if(${INFINITE_COPY_OODLE_DLL})
@@ -46,9 +52,13 @@ endif()
 
 set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 17)
 
-set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp ModuleManager.cpp PropertiesDialog.cpp LogViewer.cpp LogManager.cpp ManagedLogger.cpp FileViewerManager.cpp InfiniteFileViewer.cpp ClosableTab.cpp DataTableViewer.cpp ContentTableViewer.cpp)
-
-target_sources(infiniteExplorer PRIVATE ${sources})
+set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp ModuleManager.cpp PropertiesDialog.cpp LogViewer.cpp LogManager.cpp ManagedLogger.cpp FileViewerManager.cpp InfiniteFileViewer.cpp ClosableTab.cpp DataTableViewer.cpp ContentTableViewer.cpp
+					StringTableViewer.cpp)
+if(WIN32)
+	target_sources(infiniteExplorer PRIVATE ${sources}  res/Icon.rc)
+else()
+	target_sources(infiniteExplorer PRIVATE ${sources})
+endif()
 
 target_include_directories(infiniteExplorer PUBLIC .)
 

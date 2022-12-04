@@ -4,6 +4,7 @@
 
 #include "DataTableViewer.h"
 #include "ContentTableViewer.h"
+#include "StringTableViewer.h"
 
 #include <gtkmm.h>
 
@@ -20,4 +21,5 @@ private:
 
 	DataTableViewer* dataTableViewer;
 	ContentTableViewer* contentTableViewer;
+	StringTableViewer* stringTableViewer;
 };

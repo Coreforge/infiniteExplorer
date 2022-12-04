@@ -14,6 +14,8 @@
 //#warning WIN64 detected
 #endif
 
+//#define EXPORT_DRYRUN	// don't write any files, just check if all files can be extracted
+
 // excludes files from the file list if their data isn't actually present in the modules
 #define IGNORE_BROKEN_FILES 1
 
@@ -250,7 +252,9 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 	//printf("Exporting to %s\n",newPath.c_str());
 	if(node->type == NODE_TYPE_FILE){
 		// finally a file, now export it!
+#ifndef EXPORT_DRYRUN
 		FILE* out = fopen(newPath.c_str(),"wb");
+#endif
 		if(!node->item){
 			logger->log(LOG_LEVEL_ERROR,"Node %s with type file doesn't have an associated item! Node will be skipped!\n",newPath.c_str());
 			return;
@@ -260,12 +264,15 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 			// libInfinite should already log whatever error occured, so there's no need to do it here
 			return;
 		}
+#ifndef EXPORT_DRYRUN
 		fwrite(data,1,node->item->decompressedSize,out);
-		free(data);	// free the buffer again, as it's not needed anymore
 		fclose(out);	// close the file again. It's done now
+#endif
+		free(data);	// free the buffer again, as it's not needed anymore
 	} else if(node->type == NODE_TYPE_DIRECTORY){
 		// still a directory, we need to go deeper!
 		// create the directory, in case it doesn't exist yet. If it exists, nothing happens
+#ifndef EXPORT_DRYRUN
 #if defined( _WIN64) && !defined(__MINGW32__)
 		int mk = _mkdir(newPath.c_str());
 #elif defined(__MINGW32__)
@@ -281,6 +288,7 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 				// when searching for modules it doesn't matter as much, as we just ignore any that might be in the directory
 			}
 		}
+#endif
 		for(auto const&[name,currentNode] : node->children){
 			exportNode(currentNode, newPath);
 		}
