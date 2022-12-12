@@ -1,14 +1,14 @@
+#include <ModuleDisplayManager.h>
 #include "PropertiesDialog.h"
 
-#include "ModuleManager.h"
 #include <string>
 
 PropertiesDialog::PropertiesDialog(void* node, void* manager){
 	ModuleNode* nodeRef = (ModuleNode*) node;
-	ModuleManager* mgr = (ModuleManager*) manager;
+	ModuleDisplayManager* mgr = (ModuleDisplayManager*) manager;
 
 	// get the sizes
-	auto sizes = mgr->getSizes(nodeRef);
+	auto sizes = mgr->modMan.getSizes(nodeRef);
 	Glib::ustring decompSize = Glib::format_size(sizes.first);
 	Glib::ustring compSize = Glib::format_size(sizes.second);
 

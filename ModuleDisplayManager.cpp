@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <gtkmm.h>
-#include "ModuleManager.h"
+#include <ModuleDisplayManager.h>
 #include <algorithm>
 
 #include "libInfinite/logger/logger.h"
@@ -30,7 +30,15 @@ inline std::string cleanSearchString(std::string str){
 	return str;
 }
 
-void ModuleManager::openModuleDialog(){
+ModuleDisplayManager::ModuleDisplayManager(Logger* logger){
+	this->logger = logger;
+	modMan.logger = logger;
+
+	fileList = nullptr;
+	fileViewerManager = nullptr;
+}
+
+void ModuleDisplayManager::openModuleDialog(){
 	//printf("open\n");
 	Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Load Module",Gtk::FILE_CHOOSER_ACTION_OPEN);
 	fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
@@ -54,20 +62,17 @@ void ModuleManager::openModuleDialog(){
 	std::vector<std::string> files = fileChooser->get_filenames();
 	for(int i = 0; i < files.size(); i++){
 		//printf("Opening file: %s\n",files[i].c_str());
-		Module* mod = new Module();
-		mod->logger = logger;
-		mod->loadModule(files[i].c_str());
-		logger->log(LOG_LEVEL_INFO,"Loaded module\n");
-		modules.emplace_back(mod);
+		modMan.addModule(files[i].c_str());
 	}
 
 	// modules have been loaded, but the tree needs to be built so that it can be displayed in the file list
-	buildNodeTree();
+	//buildNodeTree();
+	modMan.buildNodeTree();
 	//currentNode = rootNode;
-	showNode(rootNode);	// display the root node in the list
+	showNode(modMan.rootNode);	// display the root node in the list
 }
 
-void ModuleManager::openPathDialog(){
+void ModuleDisplayManager::openPathDialog(){
 	Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Load Modules from",Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
 	fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
 	fileChooser->add_button("_Open", Gtk::RESPONSE_OK);
@@ -92,11 +97,12 @@ void ModuleManager::openPathDialog(){
 	loadPathRecursive(fileChooser->get_filename());
 
 	// all modules are loaded now, build the tree and show the root node
-	buildNodeTree();
-	showNode(rootNode);
+	//buildNodeTree();
+	modMan.buildNodeTree();
+	showNode(modMan.rootNode);
 }
 
-void ModuleManager::loadPathRecursive(std::string path){
+void ModuleDisplayManager::loadPathRecursive(std::string path){
 
 	// this has to be done differently on POSIX-compliant systems and /windows/ ...sigh
 
@@ -141,16 +147,9 @@ void ModuleManager::loadPathRecursive(std::string path){
 		}
 		if (name.substr(name.size() - 7, 7) == ".module") {
 			// extension should match
-			//printf("Trying %s\n", cPath.c_str());
-			Module* mod = new Module();
-			mod->logger = logger;
-			if (mod->loadModule(cPath.c_str())) {
+			if (modMan.addModule(cPath.c_str())) {
 				// the module couldn't be loaded
-				mod->~Module();
 				logger->log(LOG_LEVEL_ERROR,"Failed to load module %s, skipping!\n", cPath.c_str());
-			}
-			else {
-				modules.emplace_back(mod);
 			}
 		}
 
@@ -195,15 +194,9 @@ void ModuleManager::loadPathRecursive(std::string path){
 			}
 			if(name.substr(name.size() - 7, 7) == ".module"){
 				// extension should match
-				//printf("Trying %s\n",cPath.c_str());
-				Module* mod = new Module();
-				mod->logger = logger;
-				if(mod->loadModule(cPath.c_str())){
+				if(modMan.addModule(cPath.c_str())){
 					// the module couldn't be loaded
-					mod->~Module();
 					logger->log(LOG_LEVEL_ERROR,"Failed to load module %s, skipping!\n",cPath.c_str());
-				} else {
-					modules.emplace_back(mod);
 				}
 			}
 		}
@@ -213,7 +206,7 @@ void ModuleManager::loadPathRecursive(std::string path){
 #endif
 }
 
-void ModuleManager::exportEntryDialog(){
+void ModuleDisplayManager::exportEntryDialog(){
 	//printf("Export\n");
 	if(fileList->selectedEntries.size() == 0){
 		// nothing selected, export everything currently visible
@@ -239,7 +232,7 @@ void ModuleManager::exportEntryDialog(){
 	exportMultiple();
 }
 
-void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath){
+void ModuleDisplayManager::exportNode(ModuleNode* node, std::string path, bool fullPath){
 
 	std::string newPath;
 	if(!fullPath){
@@ -299,7 +292,7 @@ void ModuleManager::exportNode(ModuleNode* node, std::string path, bool fullPath
 	}
 }
 
-void ModuleManager::exportMultiple(){
+void ModuleDisplayManager::exportMultiple(){
 	// exporting multiple files, so just select a directory to export the files into
 	Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Export to",Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
 	fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
@@ -328,45 +321,8 @@ void ModuleManager::exportMultiple(){
 
 }
 
-void ModuleManager::buildNodeTree(){
-	rootNode = new ModuleNode();
-	rootNode->path = "";
-	rootNode->name = "/";
-	rootNode->parent = rootNode;	// the roots parent is the root
-	rootNode->type = NODE_TYPE_DIRECTORY;
-	for(int m = 0; m < modules.size(); m++){
-		// each module
-		//printf("Module %d\n",m);
-		for(auto const&[key,value] : modules[m]->items){
-			//printf("Item!\n");
-			if(value->dataOffset > modules[m]->data_size && IGNORE_BROKEN_FILES){
-				// the actual data for this file is missing, so it's not getting added to the tree, as there is no point in doing so
-				continue;
-			}
-			std::stringstream stream(key);
-			std::string part;
-			ModuleNode* currentParent = rootNode;
-			while(std::getline(stream,part,'/')){
-				if(currentParent->children.count(part) == 0){
-					//printf("adding node %s\n",part.c_str());
-					ModuleNode* newNode = new ModuleNode();
-					newNode->parent = currentParent;
-					newNode->name = part;
-					newNode->path = currentParent->path + "/" + part;
-					newNode->type = NODE_TYPE_DIRECTORY;
-					currentParent->children.insert({part,newNode});
-				}
-				currentParent =  currentParent->children[part];
-				//printf("Part: %s\n",part.c_str());
-			}
-			currentParent->type = NODE_TYPE_FILE;
-			currentParent->item = value;
-		}
-	}
-}
-
 void showNodeCallback(void* node,void* data){
-	ModuleManager* manager = (ModuleManager*)data;
+	ModuleDisplayManager* manager = (ModuleDisplayManager*)data;
 	//manager->currentNode = (ModuleNode*)node;	// this needs to be set here now because setting it in showNode causes issues with the search
 	ModuleNode* nodeptr = (ModuleNode*)node;
 	if(nodeptr->type == NODE_TYPE_FILE){
@@ -391,7 +347,7 @@ void search(void* manager, std::string query){
 	// start by cleaning the query, then decide if we're actually going to search
 
 	query = cleanSearchString(query);
-	ModuleManager* man = (ModuleManager*)manager;
+	ModuleDisplayManager* man = (ModuleDisplayManager*)manager;
 
 	if(man->currentNode == nullptr)return;	// we can't search if there is nothing loaded
 	if(query == ""){
@@ -406,7 +362,7 @@ void search(void* manager, std::string query){
 
 }
 
-void ModuleManager::searchNodes(ModuleNode* from, std::string query){
+void ModuleDisplayManager::searchNodes(ModuleNode* from, std::string query){
 	// clean up the previous search, if there was one
 	searchNode.children.clear();
 	searchNode.parent = NULL;
@@ -420,7 +376,7 @@ void ModuleManager::searchNodes(ModuleNode* from, std::string query){
 	showNode(&searchNode, true);
 }
 
-int ModuleManager::searchNodesRecursive(ModuleNode* node, std::string query, int index){
+int ModuleDisplayManager::searchNodesRecursive(ModuleNode* node, std::string query, int index){
 	for(auto const&[key,cNode] : node->children){
 		// clean up the name of the node, just like the query
 		if(searchNode.children.size() > SEARCH_MAX_RESULTS){
@@ -449,30 +405,11 @@ int ModuleManager::searchNodesRecursive(ModuleNode* node, std::string query, int
 	return index;
 }
 
-void ModuleManager::setupCallbacks(){
+void ModuleDisplayManager::setupCallbacks(){
 	fileList->setSearchCallback(&search,this);
 }
 
-// first is uncompressed, second is compressed
-std::pair<uint64_t,uint64_t> ModuleManager::getSizes(ModuleNode* node){
-	uint64_t compressed = 0;
-	uint64_t uncompressed = 0;
-	if(node->type == NODE_TYPE_DIRECTORY){
-		for(auto const&[key,cNode] : node->children){
-			auto res = getSizes(cNode);
-			compressed += res.second;
-			uncompressed += res.first;
-		}
-	} else {
-		if(node->item){
-			compressed = node->item->compressedSize;
-			uncompressed = node->item->decompressedSize;
-		}
-	}
-	return {uncompressed, compressed};
-}
-
-void ModuleManager::showNode(ModuleNode* node, bool outOfTree){
+void ModuleDisplayManager::showNode(ModuleNode* node, bool outOfTree){
 	if(!outOfTree){
 		// this node is part of the regular tree, so we should update the current Node
 		currentNode = node;	// this is the current node now
@@ -521,7 +458,7 @@ void ModuleManager::showNode(ModuleNode* node, bool outOfTree){
 		c++;
 	}
 	fileList->updateFiles(fileEntries);
-	if(node == rootNode){
+	if(node == modMan.rootNode){
 		fileList->currentPathLabel->set_text("/");
 	}else{
 		fileList->currentPathLabel->set_text(node->path.c_str());

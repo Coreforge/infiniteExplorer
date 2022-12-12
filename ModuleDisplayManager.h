@@ -1,34 +1,36 @@
 #pragma once
 #include "libInfinite/module/Module.h"
 #include "libInfinite/logger/logger.h"
-#include "ModuleNode.h"
+#include "libInfinite/module/ModuleNode.h"
 #include "FileList.h"
 #include "FileViewerManager.h"
+#include "libInfinite/module/ModuleManager.h"
 
 
 #include <string>
 
 #define SEARCH_MAX_RESULTS 2000 // stop searching after finding this many results. If too many results are displayed, it may make the GUI unresponsive, which makes it difficult to type a different query
 
-class ModuleManager{
+class ModuleDisplayManager{
 public:
+	ModuleDisplayManager(Logger* logger);
+
 	void openModuleDialog();
 	void openPathDialog();
 	void exportEntryDialog();
 	void exportEntry(std::string path);
-	void buildNodeTree();
 	void showNode(ModuleNode* node, bool outOfTree = false);	// if outOfTree is set, currentNode won't be updated (for displaying stuff like search results)
 	void setupCallbacks();
 	void searchNodes(ModuleNode* from, std::string query);
-	std::pair<uint64_t,uint64_t> getSizes(ModuleNode* node);	// first is uncompressed, second is compressed
-	std::vector<Module*> modules;
-	ModuleNode* rootNode;
+
 	ModuleNode* currentNode = nullptr;
 	FileList* fileList;
 	Logger* logger;
 
 	FileViewerManager* fileViewerManager;
 
+
+	ModuleManager modMan;
 
 	// the order in these vectors has to match, i.e. the FileEntry* and the associated ModuleNode* have to have the same index
 	//std::vector<ModuleNode*> fileEntryNodes;

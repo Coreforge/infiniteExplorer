@@ -52,7 +52,7 @@ endif()
 
 set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 17)
 
-set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp ModuleManager.cpp PropertiesDialog.cpp LogViewer.cpp LogManager.cpp ManagedLogger.cpp FileViewerManager.cpp InfiniteFileViewer.cpp ClosableTab.cpp DataTableViewer.cpp ContentTableViewer.cpp
+set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp ModuleDisplayManager.cpp PropertiesDialog.cpp LogViewer.cpp LogManager.cpp ManagedLogger.cpp FileViewerManager.cpp InfiniteFileViewer.cpp ClosableTab.cpp DataTableViewer.cpp ContentTableViewer.cpp
 					StringTableViewer.cpp)
 if(WIN32)
 	target_sources(infiniteExplorer PRIVATE ${sources}  res/Icon.rc)

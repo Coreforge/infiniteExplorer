@@ -19,9 +19,9 @@ MainWindow::MainWindow(){
 	LogManager* logManager = new LogManager(0x100000,LOG_LEVEL_ERROR,nullptr);
 	ManagedLogger* libInfiniteLogger = new ManagedLogger("[libInfinite]",logManager);
 
-	ModuleManager* moduleManager = new ModuleManager;
+	ModuleDisplayManager* moduleManager = new ModuleDisplayManager((Logger*)libInfiniteLogger);
 	//Logger* logger = new ConsoleLogger;
-	moduleManager->logger = (Logger*)libInfiniteLogger;
+	//moduleManager->logger = (Logger*)libInfiniteLogger;
 
 
 	// logging backend is done

@@ -1,6 +1,6 @@
 #pragma once
 #include <gtkmm.h>
-#include "ModuleNode.h"
+#include "libInfinite/module/ModuleNode.h"
 
 
 class PropertiesDialog : public Gtk::Dialog{
