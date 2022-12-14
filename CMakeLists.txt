@@ -10,6 +10,7 @@ add_executable(infiniteExplorer)
 set(INFINITE_EXPORT_OODLE ON)
 set(INFINITE_COPY_OODLE_DLL ON)
 set(INFINITE_OODLE_DLL oo2core_8_win64.dll)
+set(FUSE ON)
 if(NOT DEFINED LIBINFINITE)
 	add_subdirectory(libInfinite/)
 else()
@@ -24,6 +25,28 @@ if(${INFINITE_COPY_OODLE_DLL})
 endif()
 
 
+# FUSE
+if(FUSE)
+	find_package(PkgConfig)
+	pkg_check_modules(FUSE fuse3)
+	
+	if(NOT DEFINED FUSE_INCLUDE_DIRS)
+		message(STATUS "Could not find libfuse with pkgconfig")
+		find_package(FUSE)
+		if(NOT FUSE_FOUND)
+			message(WARNING "Could not find libFuse. Disabling FUSE support")
+			set(FUSE OFF)
+		else()
+			target_include_directories(infiniteExplorer PRIVATE ${FUSE_INCLUDE_DIRS})
+			target_link_libraries(infiniteExplorer ${FUSE_LIBRARIES})
+		endif()
+	else()
+		target_include_directories(infiniteExplorer PRIVATE ${FUSE_INCLUDE_DIRS})
+		target_link_libraries(infiniteExplorer ${FUSE_LIBRARIES})
+	endif()
+endif()
+
+#GTKmm
 # only use pkgconfig when not cross compiling
 if(NOT CUSTOM_GTKMM)
 	
@@ -54,6 +77,13 @@ set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 17)
 
 set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp ModuleDisplayManager.cpp PropertiesDialog.cpp LogViewer.cpp LogManager.cpp ManagedLogger.cpp FileViewerManager.cpp InfiniteFileViewer.cpp ClosableTab.cpp DataTableViewer.cpp ContentTableViewer.cpp
 					StringTableViewer.cpp)
+		
+if(FUSE)
+	set(sources ${sources} FuseDialog.cpp FuseProvider.cpp)
+	target_compile_definitions(infiniteExplorer PRIVATE USE_FUSE)
+endif()
+					
+					
 if(WIN32)
 	target_sources(infiniteExplorer PRIVATE ${sources}  res/Icon.rc)
 else()
@@ -61,6 +91,7 @@ else()
 endif()
 
 target_include_directories(infiniteExplorer PUBLIC .)
+
 
 
 

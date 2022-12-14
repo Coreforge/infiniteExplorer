@@ -30,9 +30,9 @@ inline std::string cleanSearchString(std::string str){
 	return str;
 }
 
-ModuleDisplayManager::ModuleDisplayManager(Logger* logger){
+ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger){
 	this->logger = logger;
-	modMan.logger = logger;
+	//modMan = ModuleManager(logger);
 
 	fileList = nullptr;
 	fileViewerManager = nullptr;

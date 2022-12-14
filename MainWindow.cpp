@@ -5,6 +5,10 @@
 #include "ManagedLogger.h"
 #include "FileViewerManager.h"
 
+#ifdef USE_FUSE
+#include "FuseProvider.h"
+#include "FuseDialog.h"
+#endif
 
 MainWindow::MainWindow(){
 
@@ -19,12 +23,21 @@ MainWindow::MainWindow(){
 	LogManager* logManager = new LogManager(0x100000,LOG_LEVEL_ERROR,nullptr);
 	ManagedLogger* libInfiniteLogger = new ManagedLogger("[libInfinite]",logManager);
 
+	ManagedLogger* fuseLogger = new ManagedLogger("[FUSE]",logManager);
+
 	ModuleDisplayManager* moduleManager = new ModuleDisplayManager((Logger*)libInfiniteLogger);
 	//Logger* logger = new ConsoleLogger;
 	//moduleManager->logger = (Logger*)libInfiniteLogger;
 
 
 	// logging backend is done
+
+
+	// set up the basic FUSE stuff
+#ifdef USE_FUSE
+	FuseProvider* fuseProvider = new FuseProvider(fuseLogger,&moduleManager->modMan);
+	FuseDialog* fuseDialog = new FuseDialog(fuseProvider);
+#endif
 
 	set_icon_from_file("res/icons/ie-512x512.png");
 
@@ -37,10 +50,20 @@ MainWindow::MainWindow(){
 	mainVBox->show();
 	Gtk::MenuBar* menuBar = new Gtk::MenuBar();
 	Gtk::MenuItem* fileMenuItem = new Gtk::MenuItem("File");
+
 	mainVBox->add(*menuBar);
 	menuBar->add(*fileMenuItem);
 	menuBar->show();
 	fileMenuItem->show();
+
+	// change this once there are more tools!
+#ifdef USE_FUSE
+	Gtk::MenuItem* toolsMenuItem = new Gtk::MenuItem("Tools");
+	menuBar->add(*toolsMenuItem);
+	toolsMenuItem->show();
+#endif
+
+
 	Gtk::Menu* fileMenu = new Gtk::Menu;
 	Gtk::MenuItem* openModuleItem = new Gtk::MenuItem("Open Module");
 	Gtk::MenuItem* openPathItem = new Gtk::MenuItem("Open Deploy Path");
@@ -63,6 +86,49 @@ MainWindow::MainWindow(){
 
 	openPathItem->show();
 	openPathItem->signal_activate().connect([moduleManager] {moduleManager->openPathDialog();});
+
+
+#ifdef USE_FUSE
+	// Tools menu
+	Gtk::Menu* toolsMenu = new Gtk::Menu();
+	toolsMenu->show();
+	toolsMenuItem->set_submenu(*toolsMenu);
+
+	// FUSE stuff
+	Gtk::MenuItem* fuseMenuItem = new Gtk::MenuItem("Mount/Unmount");
+	toolsMenu->add(*fuseMenuItem);
+	fuseMenuItem->signal_activate().connect([fuseProvider,fuseDialog,fuseMenuItem]{
+
+		if(fuseProvider->mounted){
+			// already mounted, so this is now the unmount option
+			fuseProvider->unmount();
+
+			// assuming unmounting was successful
+			//fuseProvider->mounted = false;
+			//fuseMenuItem->set_label("Mount");
+
+		} else {
+			// not mounted, try to mount
+			int response = fuseDialog->run();
+			fuseDialog->close();
+			if(response != Gtk::RESPONSE_OK){
+				return;
+			}
+			fuseDialog->applySettings();
+
+			// I guess try to mount now!
+			fuseProvider->mount();
+
+			// assuming mounting was successful
+			//fuseProvider->mounted = true;
+			//fuseMenuItem->set_label("Unmount");
+		}
+	});
+	fuseMenuItem->show();
+#endif
+
+
+
 
 	// the menu bar is done, now set up the grid
 	//Gtk::Grid* grid = new Gtk::Grid();
@@ -118,4 +184,42 @@ MainWindow::MainWindow(){
 	moduleManager->fileViewerManager = fileViewerManager;
 	contentPaned->pack2(*fileViewerManager, true, false);
 
+
+
+	// Quit stuff
+#ifdef USE_FUSE
+	// if FUSE is still active when quitting, display a warning
+	signal_delete_event().connect([this,fuseProvider](GdkEventAny* event) -> bool{
+		if(!fuseProvider->mounted){
+			// just exit, nothing is mounted
+			return false;
+		}
+		Gtk::Dialog exitDialog("Quit");
+		exitDialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+		exitDialog.add_button("_Quit", Gtk::RESPONSE_YES);
+		Gtk::Label lab("You still have the modules mounted.\nQuitting will stop the fuse client and unmount them.\nAre you sure?");
+		lab.set_line_wrap_mode(Pango::WRAP_WORD);
+		lab.set_justify(Gtk::JUSTIFY_CENTER);
+		lab.set_margin_top(20);
+		lab.set_margin_left(10);
+		lab.set_margin_right(10);
+		lab.set_margin_bottom(10);
+		lab.show();
+		Gtk::Image icn("dialog-warning", Gtk::ICON_SIZE_DIALOG);
+		icn.set_margin_top(20);
+		icn.show();
+		((Gtk::Box*)exitDialog.get_child())->add(icn);
+		((Gtk::Box*)exitDialog.get_child())->add(lab);
+
+		int r = exitDialog.run();
+		exitDialog.close();
+		if(r != Gtk::RESPONSE_YES){
+			// don't exit
+			return true;
+		}
+
+		fuseProvider->unmount();
+		return false;
+	});
+#endif
 }
