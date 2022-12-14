@@ -7,7 +7,7 @@
 #include "libInfinite/module/ModuleManager.h"
 
 #define FUSE_USE_VERSION 31
-#include <fuse3/fuse.h>
+#include <fuse.h>
 
 class FuseProvider{
 

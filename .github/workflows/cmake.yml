@@ -26,22 +26,35 @@ jobs:
         # check out submodules too (libInfinite)
         submodules: recursive
         
+    - name: install WinFSP
+      run: choco install --yes winfsp
+      shell: powershell
+        
     - uses: msys2/setup-msys2@v2
       with:
         msystem: MINGW64
         # install gcc, cmake and gtkmm3
         install: mingw-w64-x86_64-gcc mingw-w64-x86_64-gtkmm3 mingw-w64-x86_64-cmake
     
-    - name: Configure CMake
+    - name: Configure CMake (FUSE)
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B $(echo '${{github.workspace}}/build' | tr '\\' '/') -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOODLE_LIBRARY=$(echo '${{github.workspace}}' | tr '\\' '/')/libInfinite/oo2core_8_win64.dll -DFUSE=OFF
+      run: env PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/c/Program Files (x86)/WinFSP/lib" cmake -B $(echo '${{github.workspace}}/build' | tr '\\' '/') -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOODLE_LIBRARY=$(echo '${{github.workspace}}' | tr '\\' '/')/libInfinite/oo2core_8_win64.dll
 
-    - name: Build
+    - name: Build (FUSE)
       # Build your program with the given configuration
       run: cmake --build $(echo '${{github.workspace}}/build' | tr '\\' '/') --config ${{env.BUILD_TYPE}}
 
-    - name: Upload a Build Artifact
+    - name: Configure CMake (no FUSE)
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B $(echo '${{github.workspace}}/build2' | tr '\\' '/') -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOODLE_LIBRARY=$(echo '${{github.workspace}}' | tr '\\' '/')/libInfinite/oo2core_8_win64.dll -DFUSE=OFF
+
+    - name: Build (no FUSE)
+      # Build your program with the given configuration
+      run: cmake --build $(echo '${{github.workspace}}/build2' | tr '\\' '/') --config ${{env.BUILD_TYPE}}
+
+    - name: Upload a Build Artifact (FUSE)
       # upload the resulting binary. 
       # Libraries and resources are not uploaded as they don't change as much and should be usable from the latest release or can be copied from the repository without the need to compile anything
       uses: actions/upload-artifact@v3.1.0
@@ -49,3 +62,10 @@ jobs:
         name: infiniteExplorer
         path: ${{github.workspace}}/build/infiniteExplorer.exe
       
+    - name: Upload a Build Artifact (no FUSE)
+      # upload the resulting binary. 
+      # Libraries and resources are not uploaded as they don't change as much and should be usable from the latest release or can be copied from the repository without the need to compile anything
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: infiniteExplorer_noFUSE
+        path: ${{github.workspace}}/build2/infiniteExplorer.exe

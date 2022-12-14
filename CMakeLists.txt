@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.6.0)
 project(infiniteExplorer VERSION 0.1.0)
 
 
@@ -11,6 +11,22 @@ set(INFINITE_EXPORT_OODLE ON)
 set(INFINITE_COPY_OODLE_DLL ON)
 set(INFINITE_OODLE_DLL oo2core_8_win64.dll)
 set(FUSE ON)
+
+
+############################################################################
+#
+#	For some reason, setting I can't add anything to PKG_CONFIG_PATH
+#	from within CMake, so it has to be done outside as an 
+#	environment variable
+#
+#	Because the .pc files don't support static linking, this path is still needed though
+if(WIN32)
+# where pkg-config can find the .pc files for winFSP installed by chocolatey
+set(WINFSP_DIR "/c/Program Files (x86)/WinFSP/lib")
+endif()
+
+
+
 if(NOT DEFINED LIBINFINITE)
 	add_subdirectory(libInfinite/)
 else()
@@ -28,12 +44,19 @@ endif()
 # FUSE
 if(FUSE)
 	find_package(PkgConfig)
-	pkg_check_modules(FUSE fuse3)
+	#if(WIN32)
+	#	message(STATUS "adding WinFSP to PKG_CONFIG_PATH")
+	#	set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}:${WINFSP_DIR}")
+	#endif()
+	pkg_check_modules(FUSE IMPORTED_TARGET fuse3)
 	
 	if(NOT DEFINED FUSE_INCLUDE_DIRS)
 		message(STATUS "Could not find libfuse with pkgconfig")
 		find_package(FUSE)
 		if(NOT FUSE_FOUND)
+			if(WIN32)
+				message(STATUS "If you're trying to use winFSP, add the path to the lib folder to the PKG_CONFIG_PATH environment variable")
+			endif()
 			message(WARNING "Could not find libFuse. Disabling FUSE support")
 			set(FUSE OFF)
 		else()
@@ -41,8 +64,11 @@ if(FUSE)
 			target_link_libraries(infiniteExplorer ${FUSE_LIBRARIES})
 		endif()
 	else()
-		target_include_directories(infiniteExplorer PRIVATE ${FUSE_INCLUDE_DIRS})
-		target_link_libraries(infiniteExplorer ${FUSE_LIBRARIES})
+		string(REPLACE ";" " " FUSE_INCLUDE_DIRS "${FUSE_INCLUDE_DIRS}")
+		string(REPLACE ";" " " FUSE_LDFLAGS "${FUSE_LDFLAGS}")
+		message(STATUS "${FUSE_LDFLAGS}")
+		target_include_directories(infiniteExplorer PRIVATE "${FUSE_INCLUDE_DIRS}")
+		target_link_libraries(infiniteExplorer "${FUSE_LDFLAGS}")
 	endif()
 endif()
 

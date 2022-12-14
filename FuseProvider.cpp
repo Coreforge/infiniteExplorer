@@ -1,10 +1,15 @@
 #include "FuseProvider.h"
 
-#include <fuse_lowlevel.h>
+//#include <fuse_lowlevel.h>
 #include <signal.h>
 
 #include <cstring>
 #include <map>
+
+#ifdef _WIN64
+#define S_IFDIR 0040000
+#define S_IFREG 0100000
+#endif
 
 // to allow the callbacks to talk to the manager too
 
@@ -36,7 +41,11 @@ static void* inf_init(struct fuse_conn_info* conn, struct fuse_config* cfg){
 	return NULL;
 }
 
+#ifdef _WIN64
+static int inf_getattr(const char* path, struct fuse_stat* stbuf, struct fuse_file_info* fi){
+#else
 static int inf_getattr(const char* path, struct stat* stbuf, struct fuse_file_info* fi){
+#endif
 	cModMan->mutex.lock_shared();
 	ModuleNode* node = cModMan->getNode(std::string(path));
 	if(node == nullptr){
@@ -63,7 +72,11 @@ static int inf_getattr(const char* path, struct stat* stbuf, struct fuse_file_in
 	return 0;
 }
 
+#ifdef _WIN64
+static int inf_readdir(const char* path, void* buf, fuse_fill_dir_t filler, fuse_off_t offset, struct fuse_file_info *fi, enum fuse_readdir_flags flags){
+#else
 static int inf_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi, enum fuse_readdir_flags flags){
+#endif
 	cModMan->mutex.lock_shared();
 	ModuleNode* node = cModMan->getNode(std::string(path));
 	if(node->type != NODE_TYPE_DIRECTORY){
@@ -101,7 +114,11 @@ static int inf_open(const char *path, struct fuse_file_info *fi){
 	return 0;
 }
 
+#ifdef _WIN64
+static int inf_read(const char *path, char *buf, size_t size, fuse_off_t offset, struct fuse_file_info *fi){
+#else
 static int inf_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi){
+#endif
 	if(loadedFiles.count(std::string(path)) == 0){
 		// file not open?
 		return -ENOENT;
@@ -116,7 +133,7 @@ static int inf_read(const char *path, char *buf, size_t size, off_t offset, stru
 		// read would go beyond eof, but is partially still inside the file
 		size = lf->size - offset;
 	}
-	memcpy(buf,lf->data,size);
+	memcpy(buf,lf->data + offset,size);
 	return size;
 }
 
@@ -198,10 +215,12 @@ int FuseProvider::mount(){
 			return 1;
 		}*/
 
+#ifndef _WIN64
 		if(realpath(mountPath.c_str(),NULL) == 0){
 			logger->log(LOG_LEVEL_ERROR, "Invalid mounting path!\n");
 			return -1;
 		}
+#endif
 		//struct fuse_fs* fs = fuse_fs_new(&inf_ops, sizeof(inf_ops), modMan);
 		fs = fuse_new(&args2, &inf_ops, sizeof(inf_ops), modMan);
 		if(fs == NULL){
@@ -251,8 +270,12 @@ int FuseProvider::unmount(){
 	//fuse_exit(f);
 	//pthread_kill(fuseThread.get_id(), 2);
 
-	fuse_session_exit(fuse_get_session(fs));
+	//fuse_session_exit(fuse_get_session(fs));
+#ifdef _WIN64
+	fuse_exit(fs);
+#else
 	fuse_unmount(fs);
+#endif
 	logger->log(LOG_LEVEL_INFO, "stopping fuse\n");
 	if(fuseThread.joinable())
 		fuseThread.join();

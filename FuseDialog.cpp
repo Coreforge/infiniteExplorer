@@ -1,5 +1,11 @@
 #include "FuseDialog.h"
 
+#ifdef _WIN64
+#define MOUNTPOINT_LABEL "Mountpoint or Drive Letter:"
+#else
+#define MOUNTPOINT_LABEL "Mountpoint:"
+#endif
+
 FuseDialog::FuseDialog(FuseProvider* provider){
 	this->provider = provider;
 	((Gtk::Box*)get_child())->add(grid);
@@ -19,7 +25,7 @@ FuseDialog::FuseDialog(FuseProvider* provider){
 
 
 	int row = 0;
-	mountpointLabel.set_label("Mountpoint:");
+	mountpointLabel.set_label(MOUNTPOINT_LABEL);
 	mountpointLabel.show();
 	grid.attach(mountpointLabel, 0, row, 1, 1);
 	mountPointEntry.set_icon_from_icon_name("folder", Gtk::ENTRY_ICON_SECONDARY);
@@ -50,7 +56,8 @@ FuseDialog::FuseDialog(FuseProvider* provider){
 	row++;
 
 
-	optionsEntryLabel.set_label("other options");
+	optionsEntryLabel.set_label("other options:");
+	optionsEntryLabel.set_halign(Gtk::ALIGN_END);
 	optionsEntryLabel.show();
 	grid.attach(optionsEntryLabel, 0, row, 1, 1);
 	optionsEntry.set_width_chars(60);
