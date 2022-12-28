@@ -104,6 +104,37 @@ DataTableViewer::DataTableViewer(){
 	exportDialog->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
 	exportDialog->add_button("_Save", Gtk::RESPONSE_OK);
 
+#ifdef HXD_ENABLE
+	hexButton.set_label("Open in HxD");
+	hexButton.show();
+	settingsBox->add(hexButton);
+	hexButton.signal_clicked().connect([this]{
+		if(this->item == nullptr){
+				// no item loaded
+				return;
+			}
+			int idx;
+			std::vector selected =  this->view->get_selection()->get_selected_rows();
+			if(selected.size() == 0){
+				// nothing selected
+				return;
+			}
+
+			// only single selection should be allowed, so index 0 should be the only valid index in the vector, and it should be valid.
+			Gtk::TreeModel::Row row = *this->view->get_selection()->get_selected();
+			idx = row.get_value(indexColumn);
+
+			system((std::string("mkdir -p ") + std::string(HXD_TMP_DIR)).c_str());
+			std::string tmpname = std::string(HXD_TMP_DIR) + std::string("/") + item->name + ".blk" + std::to_string(idx);
+			FILE* f = fopen(tmpname.c_str(),"w+b");
+			DataTableEntry* entry = &this->item->dataTable.entries[idx];
+			fwrite(this->item->getDataBlock(entry), 1, entry->size, f);
+			fclose(f);
+			std::string cmd = HXD_COMMAND + tmpname + std::string(" &");
+			system(cmd.c_str());
+	});
+#endif
+
 	// Paging
 	page = 0;
 	pageSize = 0;
@@ -225,6 +256,7 @@ void DataTableViewer::selectEntry(int index){
 
 	view->get_selection()->unselect_all();
 	view->get_selection()->select(entries[index % pageSize]);
+	view->scroll_to_row(view->get_selection()->get_selected_rows()[0]);
 }
 
 void DataTableViewer::populateTable(DataTable* table){

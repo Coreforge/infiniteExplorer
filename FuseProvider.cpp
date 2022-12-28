@@ -1,6 +1,8 @@
 #include "FuseProvider.h"
 
-//#include <fuse_lowlevel.h>
+#ifndef _WIN64
+#include <fuse_lowlevel.h>
+#endif
 #include <signal.h>
 
 #include <cstring>
@@ -270,10 +272,11 @@ int FuseProvider::unmount(){
 	//fuse_exit(f);
 	//pthread_kill(fuseThread.get_id(), 2);
 
-	//fuse_session_exit(fuse_get_session(fs));
+
 #ifdef _WIN64
 	fuse_exit(fs);
 #else
+	fuse_session_exit(fuse_get_session(fs));
 	fuse_unmount(fs);
 #endif
 	logger->log(LOG_LEVEL_INFO, "stopping fuse\n");

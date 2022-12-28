@@ -6,6 +6,10 @@
 #include "libInfinite/Item.h"
 #include "ViewerUtils.h"
 
+//#define HXD_ENABLE
+#define HXD_COMMAND "wine \"/home/ich/.wine/drive_c/Program Files/HxD/HxD.exe\" Z:"
+#define HXD_TMP_DIR "/tmp/ie/"
+
 class DataTableViewer : public Gtk::Box{
 
 public:
@@ -31,6 +35,7 @@ private:
 
 	Gtk::Button* exportButton;
 	Gtk::FileChooserDialog* exportDialog;
+	Gtk::Button hexButton;
 
 	Gtk::TreeModelColumn<std::string> OffsetColumn;
 	Gtk::TreeModelColumn<std::string> SizeColumn;
