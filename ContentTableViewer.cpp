@@ -149,6 +149,9 @@ ContentTableViewer::ContentTableViewer() {
 			bool fromStart = StartOffsetCheckButton.get_active();
 			int idx = it->get_value(IndexColumn);
 			ContentTableEntry* cte = &item->contentTable.entries[idx];
+			if(cte->ref == -1){
+				continue;
+			}
 			DataTableEntry* dte = &item->dataTable.entries[cte->ref];
 			uint32_t eoff = dte->offset;
 			if(fromStart){
@@ -343,6 +346,9 @@ bool ContentTableViewer::findOffset(uint32_t off,Gtk::TreeStore::iterator iter){
 	for(auto it = iter->children().begin(); it != iter->children().end(); it++){
 		int idx = it->get_value(IndexColumn);
 		ContentTableEntry* cte = &item->contentTable.entries[idx];
+		if(cte->ref == -1){
+			continue;
+		}
 		DataTableEntry* dte = &item->dataTable.entries[cte->ref];
 		uint32_t eoff = dte->offset;
 		if(fromStart){
