@@ -110,6 +110,9 @@ static int inf_open(const char *path, struct fuse_file_info *fi){
 			return -ENOENT;
 		}
 		void* data = node->item->extractData();
+		if(data == nullptr){
+			return -ENOENT;
+		}
 		uint64_t size = cModMan->getSizes(node).first;
 		loadedFiles.insert({std::string(path),{.data = data, .size = size, .refCount = 0}});
 	}
