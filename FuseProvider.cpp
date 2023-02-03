@@ -24,6 +24,7 @@ struct inf_loaded_file {
 ModuleManager* cModMan;
 
 std::map<std::string,struct inf_loaded_file> loadedFiles;
+Logger* fuseLogger;
 
 FuseProvider::FuseProvider(Logger* logger, ModuleManager* modMan){
 	this->logger = logger;
@@ -96,6 +97,7 @@ static int inf_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
 }
 
 static int inf_open(const char *path, struct fuse_file_info *fi){
+	printf("File %s opened\n", path);
 	if(loadedFiles.count(std::string(path)) == 0){
 		// file hasn't been loaded yet
 		ModuleNode* node = cModMan->getNode(std::string(path));
@@ -176,6 +178,7 @@ static const struct fuse_operations inf_ops = {
 int FuseProvider::mount(){
 	// just make it available to the callbacks too
 	cModMan = modMan;
+	fuseLogger = logger;
 
 	if(mounted){
 		logger->log(LOG_LEVEL_ERROR,"Already mounted.");

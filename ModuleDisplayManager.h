@@ -17,6 +17,7 @@ public:
 
 	void openModuleDialog();
 	void openPathDialog();
+	void loadFileDialog();
 	void exportEntryDialog();
 	void exportEntry(std::string path);
 	void showNode(ModuleNode* node, bool outOfTree = false);	// if outOfTree is set, currentNode won't be updated (for displaying stuff like search results)

@@ -102,6 +102,32 @@ void ModuleDisplayManager::openPathDialog(){
 	showNode(modMan.rootNode);
 }
 
+void ModuleDisplayManager::loadFileDialog(){
+	Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Load Modules from",Gtk::FILE_CHOOSER_ACTION_OPEN);
+	fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+	fileChooser->add_button("_Open", Gtk::RESPONSE_OK);
+
+	int response = fileChooser->run();
+	fileChooser->close();
+	if(response != Gtk::RESPONSE_OK){
+		//printf("cancel\n");
+		return;
+	}
+
+	FILE* f = fopen(fileChooser->get_filename().c_str(),"rb");
+	fseek(f,0,SEEK_END);
+	uint32_t size = ftell(f);
+	fseek(f,0,SEEK_SET);
+	void* data = malloc(size);
+	fread(data,1,size,f);
+	fclose(f);
+
+	Item* itm = new Item((uint8_t*) data,size,logger,fileChooser->get_filename(),fileChooser->get_filename());
+	free(data);
+	fileViewerManager->addItem(itm);
+
+}
+
 void ModuleDisplayManager::loadPathRecursive(std::string path){
 
 	// this has to be done differently on POSIX-compliant systems and /windows/ ...sigh

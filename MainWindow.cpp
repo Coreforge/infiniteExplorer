@@ -20,7 +20,7 @@ MainWindow::MainWindow(){
 
 	// set up the logging backend
 	// don't set the TextBuffer yet, we'll do that once the LogViewer exists
-	LogManager* logManager = new LogManager(0x100000,LOG_LEVEL_ERROR,nullptr);
+	LogManager* logManager = new LogManager(0x100000,LOG_LEVEL_WARNING,nullptr);
 	ManagedLogger* libInfiniteLogger = new ManagedLogger("[libInfinite]",logManager);
 
 	ManagedLogger* fuseLogger = new ManagedLogger("[FUSE]",logManager);
@@ -67,11 +67,13 @@ MainWindow::MainWindow(){
 	Gtk::Menu* fileMenu = new Gtk::Menu;
 	Gtk::MenuItem* openModuleItem = new Gtk::MenuItem("Open Module");
 	Gtk::MenuItem* openPathItem = new Gtk::MenuItem("Open Deploy Path");
+	Gtk::MenuItem* openFileItem = new Gtk::MenuItem("Load File");
 	Gtk::MenuItem* ExportItem = new Gtk::MenuItem("Export");
 
 	fileMenuItem->set_submenu(*fileMenu);
 	fileMenu->add(*openModuleItem);
 	fileMenu->add(*openPathItem);
+	fileMenu->add(*openFileItem);
 	fileMenu->add(*ExportItem);
 	fileMenuItem->show();
 	fileMenu->show();
@@ -87,6 +89,10 @@ MainWindow::MainWindow(){
 	openPathItem->show();
 	openPathItem->signal_activate().connect([moduleManager] {moduleManager->openPathDialog();});
 
+	openFileItem->show();
+	openFileItem->signal_activate().connect([moduleManager]{
+		moduleManager->loadFileDialog();
+	});
 
 #ifdef USE_FUSE
 	// Tools menu
