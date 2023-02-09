@@ -97,7 +97,7 @@ static int inf_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
 }
 
 static int inf_open(const char *path, struct fuse_file_info *fi){
-	printf("File %s opened\n", path);
+	//printf("File %s opened\n", path);
 	if(loadedFiles.count(std::string(path)) == 0){
 		// file hasn't been loaded yet
 		ModuleNode* node = cModMan->getNode(std::string(path));
@@ -107,10 +107,12 @@ static int inf_open(const char *path, struct fuse_file_info *fi){
 		}
 		if(node->item == nullptr || node->type != NODE_TYPE_FILE){
 			// no item, something is probably broken, but just act like the file doesn't exist for now
+			fuseLogger->log(LOG_LEVEL_ERROR, "Failed to load file %s, no item associated!\n",path);
 			return -ENOENT;
 		}
 		void* data = node->item->extractData();
 		if(data == nullptr){
+			fuseLogger->log(LOG_LEVEL_ERROR, "Failed to load file %s, failed to extract data!\n",path);
 			return -ENOENT;
 		}
 		uint64_t size = cModMan->getSizes(node).first;
