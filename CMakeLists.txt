@@ -3,6 +3,7 @@ project(infiniteExplorer VERSION 0.1.0)
 
 
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_STANDARD 17)
 
 add_executable(infiniteExplorer)
 
@@ -101,8 +102,23 @@ endif()
 
 set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 17)
 
-set(sources PRIVATE main.cpp MainWindow.cpp FileList.cpp ModuleDisplayManager.cpp PropertiesDialog.cpp LogViewer.cpp LogManager.cpp ManagedLogger.cpp FileViewerManager.cpp InfiniteFileViewer.cpp ClosableTab.cpp DataTableViewer.cpp ContentTableViewer.cpp
-					StringTableViewer.cpp)
+set(sources PRIVATE main.cpp
+					MainWindow.cpp
+					FileList.cpp
+					ModuleDisplayManager.cpp
+					PropertiesDialog.cpp
+					LogViewer.cpp
+					LogManager.cpp
+					ManagedLogger.cpp
+					FileViewerManager.cpp
+					InfiniteFileViewer.cpp
+					ClosableTab.cpp
+					DataTableViewer.cpp
+					ContentTableViewer.cpp
+					StringTableViewer.cpp
+					TextureViewer.cpp)
+					
+target_sources(infiniteExplorer PRIVATE BitmapViewer.cpp)
 		
 if(FUSE)
 	set(sources ${sources} FuseDialog.cpp FuseProvider.cpp)

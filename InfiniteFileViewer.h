@@ -5,7 +5,9 @@
 #include "DataTableViewer.h"
 #include "ContentTableViewer.h"
 #include "StringTableViewer.h"
+#include "OptionalViewer.h"
 
+#include <vector>
 #include <gtkmm.h>
 
 
@@ -22,4 +24,6 @@ private:
 	DataTableViewer* dataTableViewer;
 	ContentTableViewer* contentTableViewer;
 	StringTableViewer* stringTableViewer;
+
+	std::vector<OptionalViewer*> optionalViewers;
 };

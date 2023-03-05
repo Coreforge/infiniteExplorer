@@ -201,7 +201,7 @@ ContentTableViewer::~ContentTableViewer(){
 	delete RefSizeViewColumn;
 	delete ParentViewColumn;
 	delete view;
-	deleteTree();
+	//deleteTree();
 }
 
 void ContentTableViewer::setShowDataCallback(std::function<void(int)> callback){
@@ -283,13 +283,13 @@ std::string ContentTableViewer::getTypeString(TypeGUID type){
 
 void ContentTableViewer::setItem(Item* item){
 	this->item = item;
-	deleteTree();
+	//deleteTree();
 	if(item == nullptr){
 		store->clear();
 		printf("null\n");
 		return;
 	}
-	generateTree(true);	//TODO: add this setting
+	//generateTree(true);	//TODO: add this setting
 	fillStore();
 }
 
@@ -298,41 +298,41 @@ void ContentTableViewer::setItem(Item* item){
 
 void ContentTableViewer::fillStore(){
 	store->clear();
-	for(int i = 0; i < tree.size(); i++){
+	for(int i = 0; i < item->contentTable.rootEntries.size(); i++){
 		// every top-level entry
 		Gtk::TreeModel::iterator iter = store->append();
-		iter->set_value(TypeColumn, getTypeString(item->contentTable.entries[tree[i]->idx].type));
-		iter->set_value(TypeIDColumn, std::to_string(item->contentTable.entries[tree[i]->idx].type_id));
-		iter->set_value(RefColumn, uint32ToHexString(item->contentTable.entries[tree[i]->idx].ref));
-		if(item->contentTable.entries[tree[i]->idx].ref != 0xffffffff){
-			iter->set_value(RefSizeColumn, uint32ToHexString(item->dataTable.entries[item->contentTable.entries[tree[i]->idx].ref].size));
+		iter->set_value(TypeColumn, getTypeString(item->contentTable.rootEntries[i]->type));
+		iter->set_value(TypeIDColumn, std::to_string(item->contentTable.rootEntries[i]->type_id));
+		iter->set_value(RefColumn, uint32ToHexString(item->contentTable.rootEntries[i]->ref));
+		if(item->contentTable.rootEntries[i]->ref != 0xffffffff){
+			iter->set_value(RefSizeColumn, uint32ToHexString(item->dataTable.entries[item->contentTable.rootEntries[i]->ref].size));
 		} else {
 			iter->set_value(RefSizeColumn, std::string("-"));
 		}
-		iter->set_value(ParentColumn, uint32ToHexString(item->contentTable.entries[tree[i]->idx].parent));
-		iter->set_value(FieldOffsetColumn, uint32ToHexString(item->contentTable.entries[tree[i]->idx].field_offset));
-		iter->set_value(IndexColumn, tree[i]->idx);
+		iter->set_value(ParentColumn, uint32ToHexString(item->contentTable.rootEntries[i]->parent));
+		iter->set_value(FieldOffsetColumn, uint32ToHexString(item->contentTable.rootEntries[i]->field_offset));
+		iter->set_value(IndexColumn, item->contentTable.rootEntries[i]->idx);
 
 		// fill in the children of this entry
-		for(int c = 0; c < tree[i]->children.size(); c++){
-			fillStoreRecursive(tree[i]->children[c], iter);
+		for(int c = 0; c < item->contentTable.rootEntries[i]->children.size(); c++){
+			fillStoreRecursive(item->contentTable.rootEntries[i]->children[c], iter);
 		}
 	}
 }
 
-void ContentTableViewer::fillStoreRecursive(TreeEntry* entry, Gtk::TreeStore::iterator iter){
+void ContentTableViewer::fillStoreRecursive(ContentTableEntry* entry, Gtk::TreeStore::iterator iter){
 	// create the row for this entry
 	Gtk::TreeModel::iterator this_it = store->append(iter->children());
-	this_it->set_value(TypeColumn, getTypeString(item->contentTable.entries[entry->idx].type));
-	this_it->set_value(TypeIDColumn, std::to_string(item->contentTable.entries[entry->idx].type_id));
-	this_it->set_value(RefColumn, uint32ToHexString(item->contentTable.entries[entry->idx].ref));
-	if(item->contentTable.entries[entry->idx].ref != 0xffffffff){
-		this_it->set_value(RefSizeColumn, uint32ToHexString(item->dataTable.entries[item->contentTable.entries[entry->idx].ref].size));
+	this_it->set_value(TypeColumn, getTypeString(entry->type));
+	this_it->set_value(TypeIDColumn, std::to_string(entry->type_id));
+	this_it->set_value(RefColumn, uint32ToHexString(entry->ref));
+	if(entry->ref != 0xffffffff){
+		this_it->set_value(RefSizeColumn, uint32ToHexString(item->dataTable.entries[entry->ref].size));
 	} else {
 		this_it->set_value(RefSizeColumn, std::string("-"));
 	}
-	this_it->set_value(ParentColumn, uint32ToHexString(item->contentTable.entries[entry->idx].parent));
-	this_it->set_value(FieldOffsetColumn, uint32ToHexString(item->contentTable.entries[entry->idx].field_offset));
+	this_it->set_value(ParentColumn, uint32ToHexString(entry->parent));
+	this_it->set_value(FieldOffsetColumn, uint32ToHexString(entry->field_offset));
 	this_it->set_value(IndexColumn, entry->idx);
 
 	// fill in the children, if there are any
@@ -404,8 +404,12 @@ void ContentTableViewer::generateTree(bool tree){
 	// create a TableEntry for every Entry
 	for(int i = 0; i < item->contentTable.entries.size(); i++){
 		// every entry
+		ContentTableEntry* cte = &item->contentTable.entries[i];
 		TreeEntry* tmp = new TreeEntry;
 		tmp->idx = i;
+		for(int c = 0; c < cte->children.size(); c++){
+
+		}
 		tmpVec.emplace_back(tmp);
 	}
 

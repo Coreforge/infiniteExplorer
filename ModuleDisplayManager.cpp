@@ -122,7 +122,8 @@ void ModuleDisplayManager::loadFileDialog(){
 	fread(data,1,size,f);
 	fclose(f);
 
-	Item* itm = new Item((uint8_t*) data,size,logger,fileChooser->get_filename(),fileChooser->get_filename());
+	// there's no moduleItem here to use anyways, and the basic viewers don't need it. All other ones will have to check for this
+	Item* itm = new Item((uint8_t*) data,size,logger,fileChooser->get_filename(),fileChooser->get_filename(), nullptr);
 	free(data);
 	fileViewerManager->addItem(itm);
 
@@ -360,7 +361,7 @@ void showNodeCallback(void* node,void* data){
 			// libInfinite already logged the error, no need to do it again
 			return;
 		}
-		Item* itm = new Item(itmData, nodeptr->item->decompressedSize, manager->logger, nodeptr->name, nodeptr->path);
+		Item* itm = new Item(itmData, nodeptr->item->decompressedSize, manager->logger, nodeptr->name, nodeptr->path, nodeptr->item);
 		free(itmData);
 		manager->fileViewerManager->addItem(itm);
 		// we still don't want to display it in the file list

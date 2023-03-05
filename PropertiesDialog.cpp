@@ -64,7 +64,49 @@ PropertiesDialog::PropertiesDialog(void* node, void* manager){
 		moduleValueLabel->set_selectable(true);
 		r++;
 	}
+	if(nodeRef->type == NODE_TYPE_FILE){
 
+		// Tag class
+		Gtk::Label* tagTypeLabel = Gtk::make_managed<Gtk::Label>("Tag class: ");
+		std::string tagType((char*)&nodeRef->item->tagType);
+		std::reverse(tagType.begin(),tagType.end());
+		Gtk::Label* tagTypeValueLabel = Gtk::make_managed<Gtk::Label>(tagType);
+		mainGrid->attach(*tagTypeLabel, 0, r);
+		mainGrid->attach(*tagTypeValueLabel, 1, r);
+		tagTypeLabel->set_halign(Gtk::ALIGN_START);
+		tagTypeValueLabel->set_halign(Gtk::ALIGN_START);
+		tagTypeLabel->show();
+		tagTypeValueLabel->show();
+		r++;
+
+		// Parent item
+		Gtk::Label* parentLabel = Gtk::make_managed<Gtk::Label>("Parent: ");
+		std::string parentString;
+		if(nodeRef->item->parent == nullptr){
+			parentString = "None";
+		} else {
+			parentString = nodeRef->item->parent->path;
+		}
+		Gtk::Label* parentValueLabel = Gtk::make_managed<Gtk::Label>(parentString);
+		mainGrid->attach(*parentLabel, 0, r);
+		mainGrid->attach(*parentValueLabel, 1, r);
+		parentLabel->set_halign(Gtk::ALIGN_START);
+		parentValueLabel->set_halign(Gtk::ALIGN_START);
+		parentLabel->show();
+		parentValueLabel->show();
+		r++;
+
+		// Resource count
+		Gtk::Label* resourceCountLabel = Gtk::make_managed<Gtk::Label>("Resource count: ");
+		Gtk::Label* resourceCountValueLabel = Gtk::make_managed<Gtk::Label>(std::to_string(nodeRef->item->resources.size()));
+		mainGrid->attach(*resourceCountLabel, 0, r);
+		mainGrid->attach(*resourceCountValueLabel, 1, r);
+		resourceCountLabel->set_halign(Gtk::ALIGN_START);
+		resourceCountValueLabel->set_halign(Gtk::ALIGN_START);
+		resourceCountLabel->show();
+		resourceCountValueLabel->show();
+		r++;
+	}
 
 	// Decompressed size
 	Gtk::Label* decompLabel = Gtk::make_managed<Gtk::Label>("Decompressed Size: ");

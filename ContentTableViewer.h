@@ -42,7 +42,7 @@ private:
 	Gtk::TreeModelColumn<std::string> RefSizeColumn;
 	Gtk::TreeModelColumn<std::string> ParentColumn;
 	Gtk::TreeModelColumn<std::string> FieldOffsetColumn;
-	Gtk::TreeModelColumn<int> IndexColumn;
+	Gtk::TreeModelColumn<uint32_t> IndexColumn;
 
 	Item* item;
 
@@ -100,7 +100,7 @@ private:
 	void deleteTree();	// clean up the tree
 	void deleteTreeRecursive(TreeEntry* entry);
 	void fillStore();
-	void fillStoreRecursive(TreeEntry* entry, Gtk::TreeStore::iterator iter);
+	void fillStoreRecursive(ContentTableEntry* entry, Gtk::TreeStore::iterator iter);
 
 	bool findOffset(uint32_t off,Gtk::TreeStore::iterator iter);
 
