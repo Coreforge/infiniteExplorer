@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "libInfinite/contentUtils.h"
+
 // display modes for the 16-byte type field
 #define TYPE_GUID "guid"
 #define TYPE_HEXL "hexl"
@@ -208,7 +210,7 @@ void ContentTableViewer::setShowDataCallback(std::function<void(int)> callback){
 	showDataCallback = callback;
 }
 
-std::string pythonByteLiteral(uint8_t byte){
+/*std::string pythonByteLiteral(uint8_t byte){
 	if(byte >= 32 && byte < 127){
 		// printable ASCII-character
 		if(byte == 39){
@@ -222,7 +224,7 @@ std::string pythonByteLiteral(uint8_t byte){
 	char tmp[5];
 	snprintf(tmp,5,"\\x%02x",byte);
 	return std::string(tmp);
-}
+}*/
 
 std::string uint8HexString(uint8_t byte){
 	char tmp[3];
