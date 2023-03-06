@@ -5,6 +5,12 @@ libInfinite is based on HIMU by MontagueM (https://github.com/MontagueM/HaloInfi
 
 Making the contents of the module available by mounting them requires FUSE3 on linux or [WinFSP](https://winfsp.dev/rel) on windows. This feature is optional though.
 
+# Credits
+
+[HIMU](https://github.com/MontagueM/HaloInfiniteModuleUnpacker) and [HIME](https://github.com/MontagueM/HaloInfiniteModelExtractor) by MontagueM   
+detex by Harm Hanemaaijer and Contributors (see [here](https://github.com/hglm/detex/blob/master/LICENSE) for the license)  
+[stb_image_write](https://github.com/nothings/stb/blob/master/stb_image_write.h) used for texture export, see source for authors
+
 # Download
 ## Stable
 The releases on github should be somewhat stable. 

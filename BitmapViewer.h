@@ -35,6 +35,13 @@ private:
 	Gtk::Label* currentSizeLabel;
 	TextureViewer* viewerDrawingArea;
 
+	Gtk::Button* exportSingleDDS;
+	Gtk::Button* exportAllDDS;
+	Gtk::Button* exportSinglePNG;
+	Gtk::ComboBoxText* formatComboBox;
+
+	std::string runExportDialog(std::string fileName);
+
 	Item* item;
 
 

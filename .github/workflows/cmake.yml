@@ -60,7 +60,9 @@ jobs:
       uses: actions/upload-artifact@v3.1.0
       with:
         name: infiniteExplorer
-        path: ${{github.workspace}}/build/infiniteExplorer.exe
+        path: |
+          ${{github.workspace}}/build/infiniteExplorer.exe
+          ${{github.workspace}}/build/detex_LICENSE
       
     - name: Upload a Build Artifact (no FUSE)
       # upload the resulting binary. 
@@ -68,4 +70,6 @@ jobs:
       uses: actions/upload-artifact@v3.1.0
       with:
         name: infiniteExplorer_noFUSE
-        path: ${{github.workspace}}/build2/infiniteExplorer.exe
+        path: |
+          ${{github.workspace}}/build2/infiniteExplorer.exe
+          ${{github.workspace}}/build2/detex_LICENSE

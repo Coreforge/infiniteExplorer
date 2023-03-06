@@ -116,7 +116,8 @@ set(sources PRIVATE main.cpp
 					DataTableViewer.cpp
 					ContentTableViewer.cpp
 					StringTableViewer.cpp
-					TextureViewer.cpp)
+					TextureViewer.cpp
+					StringUtils.cpp)
 					
 target_sources(infiniteExplorer PRIVATE BitmapViewer.cpp)
 		
@@ -142,3 +143,5 @@ target_link_libraries(infiniteExplorer Infinite)
 
 # copy resource files
 include(res/CMakeLists.txt)
+
+configure_file(libInfinite/3rd_party/detex/LICENSE detex_LICENSE COPYONLY)

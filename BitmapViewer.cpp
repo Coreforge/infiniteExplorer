@@ -2,6 +2,11 @@
 
 #include "texture_names.h"
 
+#include "StringUtils.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 BitmapViewer::BitmapViewer(){
 	builder = Gtk::Builder::create_from_file("res/bitmapViewer.glade");
 
@@ -19,6 +24,10 @@ BitmapViewer::BitmapViewer(){
 	builder->get_widget("statusMaxSize", maxSizeLabel);
 	builder->get_widget("mipmapComboBox", mipmapComboBox);
 	builder->get_widget_derived("bitmapDrawingArea", viewerDrawingArea);
+	builder->get_widget("ddsExportSingleMip", exportSingleDDS);
+	builder->get_widget("ddsExportAllMips", exportAllDDS);
+	builder->get_widget("pngExport", exportSinglePNG);
+	builder->get_widget("exportFormatCombo", formatComboBox);
 
 	frameNumberButton->signal_changed().connect([this]{
 		updateStuff();
@@ -28,6 +37,75 @@ BitmapViewer::BitmapViewer(){
 		updateMipmap();
 	});
 
+	exportSingleDDS->signal_clicked().connect([this]{
+		std::string path = runExportDialog(getFilename(item->name) + std::string(".dds"));
+		if(path == std::string("")) return;
+		int idx = frameNumberButton->get_adjustment()->get_value();
+		int lvl = mipmapComboBox->get_active_row_number();
+		detexTexture tex = handle->frames[idx].getDetexTexture(lvl);
+		if(tex.data == nullptr) return;
+		detexSaveDDSFile(&tex, path.c_str());
+		free(tex.data);
+	});
+
+	exportAllDDS->signal_clicked().connect([this]{
+		std::string path = runExportDialog(getFilename(item->name) + std::string(".dds"));
+		if(path == std::string("")) return;
+		int idx = frameNumberButton->get_adjustment()->get_value();
+
+		detexTexture* texs = (detexTexture*) malloc(handle->frames[idx].mipmapCount * sizeof(detexTexture));
+		detexTexture** texpointers = (detexTexture**) calloc(handle->frames[idx].mipmapCount,sizeof(detexTexture*));
+		for(int i = 0; i < handle->frames[idx].mipmapCount; i++){
+			texs[i] = handle->frames[idx].getDetexTexture(i);
+			if(texs[i].data == nullptr){
+				goto cleanup;
+			}
+			texpointers[i] = &texs[i];
+		}
+		detexSaveDDSFileWithMipmaps(texpointers, handle->frames[idx].mipmapCount, path.c_str());
+
+		cleanup:
+		for(int i = 0; i < handle->frames[idx].mipmapCount; i++){
+			if(texs[i].data != nullptr){
+				free(texs[i].data);
+			}
+		}
+		free(texpointers);
+		free(texs);
+	});
+
+	exportSinglePNG->signal_clicked().connect([this]{
+		int idx = frameNumberButton->get_adjustment()->get_value();
+		int lvl = mipmapComboBox->get_active_row_number();
+		void* data = handle->frames[idx].getR8G8B8A8Data(lvl);
+		if(data == nullptr){
+			return;
+		}
+		if(formatComboBox->get_active_id() == "png"){
+			// PNG export
+			std::string path = runExportDialog(getFilename(item->name) + std::string(".png"));
+			if(path == std::string("")) return;
+
+			if(!stbi_write_png(path.c_str(), handle->frames[idx].mipMaps[lvl].width, handle->frames[idx].mipMaps[lvl].height,
+					4, data, handle->frames[idx].mipMaps[lvl].width * 4)){
+				// write failed
+				printf("png export failed\n");
+			}
+
+		}
+		if(formatComboBox->get_active_id() == "tga"){
+			// PNG export
+			std::string path = runExportDialog(getFilename(item->name) + std::string(".tga"));
+			if(path == std::string("")) return;
+
+			if(!stbi_write_tga(path.c_str(), handle->frames[idx].mipMaps[lvl].width, handle->frames[idx].mipMaps[lvl].height,
+					4, data)){
+				// write failed
+				printf("tga export failed\n");
+			}
+
+		}
+	});
 
 
 	item = nullptr;
@@ -36,6 +114,21 @@ BitmapViewer::BitmapViewer(){
 BitmapViewer::~BitmapViewer(){
 	if(item != nullptr){
 		delete item;
+	}
+}
+
+std::string BitmapViewer::runExportDialog(std::string fileName){
+	Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Export",Gtk::FILE_CHOOSER_ACTION_SAVE);
+	fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+	fileChooser->add_button("_Save", Gtk::RESPONSE_OK);
+
+	fileChooser->set_current_name(fileName);
+	int response = fileChooser->run();
+	fileChooser->close();
+	if(response == Gtk::RESPONSE_OK){
+		return fileChooser->get_filename();
+	} else {
+		return std::string("");
 	}
 }
 
