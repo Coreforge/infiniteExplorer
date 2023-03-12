@@ -7,7 +7,7 @@
 #include "libInfinite/Item.h"
 
 
-#include "libInfinite/tags/TagLoader.h"
+//#include "libInfinite/tags/TagLoader.h"
 
 #ifdef _WIN64
 #include <windows.h>
@@ -33,8 +33,8 @@ inline std::string cleanSearchString(std::string str){
 	return str;
 }
 
-ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger),
-						tagManager(&modMan,logger){
+ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger){//,
+						//tagManager(&modMan,logger){
 	this->logger = logger;
 	//modMan = ModuleManager(logger);
 
@@ -371,7 +371,7 @@ void showNodeCallback(void* node,void* data){
 		free(itmData);
 		manager->fileViewerManager->addItem(itm);
 
-		manager->tagManager.addTag(nodeptr->item);
+		//manager->tagManager.addTag(nodeptr->item);
 		// we still don't want to display it in the file list
 		return;
 	}
