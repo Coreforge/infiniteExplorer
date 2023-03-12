@@ -68,7 +68,7 @@ PropertiesDialog::PropertiesDialog(void* node, void* manager){
 
 		// Tag class
 		Gtk::Label* tagTypeLabel = Gtk::make_managed<Gtk::Label>("Tag class: ");
-		std::string tagType((char*)&nodeRef->item->tagType);
+		std::string tagType((char*)&nodeRef->item->tagType,4);
 		std::reverse(tagType.begin(),tagType.end());
 		Gtk::Label* tagTypeValueLabel = Gtk::make_managed<Gtk::Label>(tagType);
 		mainGrid->attach(*tagTypeLabel, 0, r);
