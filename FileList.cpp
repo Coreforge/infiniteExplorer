@@ -17,7 +17,7 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	listBox = new Gtk::Box();
 	internalLayoutBox = new Gtk::Box();
 	controlBox = new Gtk::Box();
-	evtBox = new Gtk::EventBox();
+	//evtBox = new Gtk::EventBox();
 	currentPathLabel = new Gtk::Label();
 	listScroller = new Gtk::ScrolledWindow();
 	pathScroller = new Gtk::ScrolledWindow();
@@ -33,13 +33,68 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	frame->set_label_align(0.5, 0.5);
 	frame->set_size_request(450, 300);
 
-	evtBox->add(*frame);
-	parent->add(*evtBox);
+
+	//evtBox->add(*frame);
+	parent->add(*frame);
 	//frame->add(*label);
 
 
-	listBox->set_property("orientation", Gtk::Orientation::ORIENTATION_VERTICAL);
-	listBox->show();
+	cRecord.add(iconColumn);
+	cRecord.add(nameColumn);
+	cRecord.add(entryColumn);
+
+	store = Gtk::ListStore::create(cRecord);
+
+	//vc = Gtk::TreeViewColumn()
+	treeView.set_model(store);
+	treeView.append_column(mainViewColumn);
+	//mainViewColumn.pack_start(iconColumn, false);
+	mainViewColumn.pack_start(crPixbuf, false);
+	mainViewColumn.pack_start(crText, true);
+	mainViewColumn.add_attribute(crPixbuf, "icon-name", iconColumn);
+	//mainViewColumn.set_renderer(crPixbuf, iconColumn);
+	mainViewColumn.set_renderer(crText, nameColumn);
+	mainViewColumn.set_title("Name");
+	//mainViewColumn.add_attribute(crText, "text", nameColumn);
+
+	treeView.set_hexpand(1);
+	treeView.set_vexpand(1);
+	treeView.show();
+	treeView.set_grid_lines(Gtk::TreeViewGridLines::TREE_VIEW_GRID_LINES_BOTH);
+	treeView.get_selection()->set_mode(Gtk::SelectionMode::SELECTION_MULTIPLE);
+	setupModelStuff();
+	//listBox->add(treeView);
+
+	treeView.signal_row_activated().connect([this](Gtk::TreePath path, Gtk::TreeViewColumn* column){
+		int n = this->treeView.get_selection()->get_selected_rows().size();
+
+		Gtk::ListStore::Row row = *this->store->get_iter(this->treeView.get_selection()->get_selected_rows()[0]);
+		FileEntry* ent = row.get_value(entryColumn);
+		if(ent->onClick != nullptr){
+			// we have a function to call
+			ent->onClick(ent->nodeRef,ent->data);
+		}
+	});
+
+	treeView.add_events(Gdk::BUTTON_PRESS_MASK);
+	treeView.signal_button_release_event().connect([this] (GdkEventButton* button) -> bool{
+		if(button->button == GDK_BUTTON_SECONDARY && this->treeView.get_selection()->get_selected_rows().size() > 0){
+			Gtk::ListStore::Row row = *this->store->get_iter(this->treeView.get_selection()->get_selected_rows()[0]);
+			FileEntry* ent = row.get_value(entryColumn);
+			if(contextMenu->get_attach_widget()){
+				contextMenu->detach();
+			}
+			contextMenu->attach_to_widget(treeView);
+			contextMenu->popup(button->button,button->time);
+			propNode = ent->nodeRef;
+		}
+		return false;
+	});
+
+
+
+	//listBox->set_property("orientation", Gtk::Orientation::ORIENTATION_VERTICAL);
+	//listBox->show();
 	internalLayoutBox->set_property("orientation", Gtk::Orientation::ORIENTATION_VERTICAL);
 	internalLayoutBox->show();
 
@@ -67,8 +122,9 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	//internalLayoutBox->add(*listBox);
 
 	//List
-	listScroller->add(*listBox);
-	listScroller->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
+	//listScroller->add(*listBox);
+	listScroller->add(treeView);
+	listScroller->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
 //#ifndef _WIN64
 	listScroller->set_propagate_natural_height(true);
@@ -91,19 +147,19 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 
 
 
-	evtBox->add_events(Gdk::BUTTON_PRESS_MASK);
+	/*evtBox->add_events(Gdk::BUTTON_PRESS_MASK);
 	evtBox->add_events(Gdk::KEY_PRESS_MASK);
 	evtBox->add_events(Gdk::KEY_RELEASE_MASK);
 	evtBox->signal_button_press_event().connect([this] (GdkEventButton* event){onFrameClicked();return 0;});
 	evtBox->signal_key_press_event().connect([this] (GdkEventKey* key){onKeyPressed(key);return 0;});
 	evtBox->signal_key_release_event().connect([this] (GdkEventKey* key){onKeyReleased(key);return 0;});
-	evtBox->show();
+	evtBox->show();*/
 
 	frame->signal_check_resize().connect([this] {onResize();});
 	// load the style sheet for the buttons
 	cssProvider = Gtk::CssProvider::create();
 	cssProvider->load_from_path("res/fileExplorer.css");
-	selectedEntries.clear();
+	//selectedEntries.clear();
 
 	shiftPressed = false;
 	ctrlPressed = false;
@@ -123,6 +179,18 @@ void FileList::onSearch(){
 	onSearchCallback(manager, searchBar->get_text());
 }
 
+std::vector<FileEntry*> FileList::getSelectedEntries(){
+	std::vector<FileEntry*> selected;
+	auto rows = treeView.get_selection()->get_selected_rows();
+	for(auto it = rows.begin(); it != rows.end(); it++){
+		selected.emplace_back(store->get_iter(*it)->get_value(entryColumn));
+	}
+
+	return selected;
+}
+
+
+/*
 void FileList::onKeyPressed(GdkEventKey* key){
 	if(key->keyval == GDK_KEY_Shift_L || key->keyval == GDK_KEY_Shift_R){
 		shiftPressed = true;
@@ -152,8 +220,8 @@ void FileList::onFrameClicked(){
 	}
 	selectedEntries.clear();
 }
-
-void FileList::onEntryDoubleClicked(Gtk::Button* button, GdkEventButton* event, FileEntry* entry){
+*/
+/*void FileList::onEntryDoubleClicked(Gtk::Button* button, GdkEventButton* event, FileEntry* entry){
 	if(event->type == GDK_2BUTTON_PRESS){
 		//std::cout << "Double click!\n";
 		if(entry->onClick != nullptr){
@@ -172,9 +240,9 @@ void FileList::onEntryDoubleClicked(Gtk::Button* button, GdkEventButton* event, 
 			propNode = entry->nodeRef;
 		}
 	}
-}
+}*/
 
-void FileList::onEntryClicked(Gtk::Button* button, FileEntry* entry){
+/*void FileList::onEntryClicked(Gtk::Button* button, FileEntry* entry){
 
 	// neither shift or ctrl is pressed (normal selection), or shift is pressed, but there is no active entry
 	if((!shiftPressed && !ctrlPressed) || (shiftPressed && activeEntry.first == nullptr)){
@@ -254,23 +322,41 @@ void FileList::onEntryClicked(Gtk::Button* button, FileEntry* entry){
 
 	}
 
-}
+}*/
 
 void FileList::clearList(){
-	for(int i = 0; i < shownEntries.size(); i++){
+	/*for(int i = 0; i < shownEntries.size(); i++){
 		listBox->remove(*shownEntries[i].second);
 		shownEntries[i].second->remove();
 		shownEntries[i].second->~Button();
 
-	}
-	shownEntries.clear();
-	selectedEntries.clear();
+	}*/
+	store->clear();
+
+	//shownEntries.clear();
+	//selectedEntries.clear();
 
 }
 
+void FileList::setupModelStuff(){
+	treeView.set_search_column(nameColumn);
+}
+
 void FileList::updateFiles(std::vector<FileEntry*> entries){
+	treeView.set_model(Glib::RefPtr<Gtk::ListStore>());
 	clearList();
 	for(int i = 0; i < entries.size(); i++){
+
+		const char* iconName;
+		switch(entries[i]->type){
+		case FILE_TYPE_FILE:
+			iconName = FILE_TYPE_FILE_ICON;
+			break;
+		case FILE_TYPE_DIRECTORY:
+			iconName = FILE_TYPE_DIRECTORY_ICON;
+		}
+
+		/*
 		Gtk::Button* button = new Gtk::Button();
 		button->set_label(entries[i]->name);
 		if(entries[i]->onClick != nullptr){
@@ -284,14 +370,7 @@ void FileList::updateFiles(std::vector<FileEntry*> entries){
 		//buttonContext->add_class("selected");
 
 
-		const char* iconName;
-		switch(entries[i]->type){
-		case FILE_TYPE_FILE:
-			iconName = FILE_TYPE_FILE_ICON;
-			break;
-		case FILE_TYPE_DIRECTORY:
-			iconName = FILE_TYPE_DIRECTORY_ICON;
-		}
+
 		button->set_image_from_icon_name(iconName, Gtk::ICON_SIZE_SMALL_TOOLBAR);
 		button->set_always_show_image(true);
 		button->set_image_position(Gtk::PositionType::POS_LEFT);
@@ -303,10 +382,20 @@ void FileList::updateFiles(std::vector<FileEntry*> entries){
 		FileEntry* entryCopy = entries[i];//&shownEntries.back().first;
 
 		button->add_events(Gdk::BUTTON_PRESS_MASK);
-		button->signal_button_press_event().connect([this,button,entryCopy] (GdkEventButton* event){onEntryDoubleClicked(button, event, entryCopy); return 0;});
+		//button->signal_button_press_event().connect([this,button,entryCopy] (GdkEventButton* event){onEntryDoubleClicked(button, event, entryCopy); return 0;});
 		button->signal_clicked().connect([this,button,entryCopy] {onEntryClicked(button,entryCopy);});
+		*/
+
+
+		// TreeView version
+		auto it = store->append();
+		it->set_value(nameColumn, std::string(entries[i]->name));
+		it->set_value(iconColumn, std::string(iconName));
+		it->set_value(entryColumn, entries[i]);
 	}
-	selectedEntries.clear();
+	//selectedEntries.clear();
 	activeEntry.first = nullptr;
 	activeEntry.second = nullptr;
+	treeView.set_model(store);
+	setupModelStuff();
 }

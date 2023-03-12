@@ -6,6 +6,7 @@
 #include "FileViewerManager.h"
 #include "libInfinite/module/ModuleManager.h"
 
+#include "libInfinite/tags/TagManager.h"
 
 #include <string>
 
@@ -29,6 +30,8 @@ public:
 	Logger* logger;
 
 	FileViewerManager* fileViewerManager;
+
+	TagManager tagManager;
 
 
 	ModuleManager modMan;

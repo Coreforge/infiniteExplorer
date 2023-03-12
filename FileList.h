@@ -20,17 +20,18 @@ public:
 	void updateFiles(std::vector<FileEntry*> entries);
 	void clearList();
 
-	void onEntryDoubleClicked(Gtk::Button* button, GdkEventButton* event, FileEntry* entry);
-	void onEntryClicked(Gtk::Button* button, FileEntry* entry);
+	//void onEntryDoubleClicked(Gtk::Button* button, GdkEventButton* event, FileEntry* entry);
+	//void onEntryClicked(Gtk::Button* button, FileEntry* entry);
 	void onFrameClicked();
 	void onKeyPressed(GdkEventKey* key);
 	void onKeyReleased(GdkEventKey* key);
 	void setSearchCallback(void (*onSearch)(void*,std::string), void* manager);
 	void onSearch();
+	std::vector<FileEntry*> getSelectedEntries();
 
 	Gtk::Label* currentPathLabel;
 	std::vector<std::pair<FileEntry*,Gtk::Button*>> selectedEntries;
-	std::vector<std::pair<FileEntry,Gtk::Button*>> shownEntries;
+	//std::vector<std::pair<FileEntry,Gtk::Button*>> shownEntries;
 	Gtk::ScrolledWindow* listScroller;
 	Gtk::ScrolledWindow* pathScroller;
 
@@ -55,12 +56,26 @@ private:
 
 	void onResize();
 
+	void setupModelStuff();
+
 	Gtk::EventBox* evtBox;
 	Glib::RefPtr<Gtk::Builder> builder;
 
 
 	Glib::RefPtr<Gtk::CssProvider> cssProvider;
 	std::pair<FileEntry*,Gtk::Button*> activeEntry;
+
+
+	// TreeView Stuff
+	Gtk::TreeModel::ColumnRecord cRecord;
+	Gtk::TreeViewColumn mainViewColumn;
+	Gtk::TreeModelColumn<std::string> iconColumn;
+	Gtk::TreeModelColumn<std::string> nameColumn;
+	Gtk::TreeModelColumn<FileEntry*> entryColumn;
+	Glib::RefPtr<Gtk::ListStore> store;
+	Gtk::TreeView treeView;
+	Gtk::CellRendererPixbuf crPixbuf;
+	Gtk::CellRendererText crText;
 
 	void (*onSearchCallback)(void*,std::string);
 	void* manager;

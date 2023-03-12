@@ -6,6 +6,9 @@
 #include "libInfinite/logger/logger.h"
 #include "libInfinite/Item.h"
 
+
+#include "libInfinite/tags/TagLoader.h"
+
 #ifdef _WIN64
 #include <windows.h>
 #include <fileapi.h>
@@ -30,7 +33,8 @@ inline std::string cleanSearchString(std::string str){
 	return str;
 }
 
-ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger){
+ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger),
+						tagManager(&modMan,logger){
 	this->logger = logger;
 	//modMan = ModuleManager(logger);
 
@@ -235,16 +239,17 @@ void ModuleDisplayManager::loadPathRecursive(std::string path){
 
 void ModuleDisplayManager::exportEntryDialog(){
 	//printf("Export\n");
-	if(fileList->selectedEntries.size() == 0){
+	auto selected = fileList->getSelectedEntries();
+	if(selected.size() == 0){
 		// nothing selected, export everything currently visible
 		//logger->log(LOG_LEVEL_ERROR,"nothing selected\n");
 		exportMultiple();
 		return;
 	}
-	if(fileList->selectedEntries.size() == 1 && fileList->selectedEntries[0].first->type == FILE_TYPE_FILE){
+	if(selected.size() == 1 && selected[0]->type == FILE_TYPE_FILE){
 		//printf("Export 1 file entry\n");
 		// export a single file, so we can use a save dialog and let the user choose the name
-		FileEntry* entry = fileList->selectedEntries[0].first;
+		FileEntry* entry = selected[0];
 		Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Export",Gtk::FILE_CHOOSER_ACTION_SAVE);
 		fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
 		fileChooser->add_button("_Save", Gtk::RESPONSE_OK);
@@ -252,7 +257,7 @@ void ModuleDisplayManager::exportEntryDialog(){
 		fileChooser->set_current_name(entry->name);
 		int response = fileChooser->run();
 		fileChooser->close();
-		exportNode((ModuleNode*)fileList->selectedEntries[0].first->nodeRef, fileChooser->get_filename(),true);
+		exportNode((ModuleNode*)selected[0]->nodeRef, fileChooser->get_filename(),true);
 		return;
 	}
 	// multiple entries selected, only let the user choose a directory to export to
@@ -331,16 +336,17 @@ void ModuleDisplayManager::exportMultiple(){
 	if(response == Gtk::RESPONSE_OK){
 		// export
 		std::string path = fileChooser->get_filename();
-		if(fileList->selectedEntries.size() == 0){
+		auto selected = fileList->getSelectedEntries();
+		if(selected.size() == 0){
 			// export all shown entries
 			// start with index 1 to skip the parent directory, as that would eventually result in infinite recursion, which would then crash due to a StackOverflow
-			for(int i = 1; i < fileList->shownEntries.size(); i++){
-				exportNode((ModuleNode*)fileList->shownEntries[i].first.nodeRef, path);
+			for(int i = 1; i < fileEntries.size(); i++){
+				exportNode((ModuleNode*)fileEntries[i]->nodeRef, path);
 			}
 		}else{
 			// export all selected entries
-			for(int i = 0; i < fileList->selectedEntries.size(); i++){
-				exportNode((ModuleNode*)fileList->selectedEntries[i].first->nodeRef, path);
+			for(int i = 0; i < selected.size(); i++){
+				exportNode((ModuleNode*)selected[i]->nodeRef, path);
 			}
 		}
 
@@ -364,6 +370,8 @@ void showNodeCallback(void* node,void* data){
 		Item* itm = new Item(itmData, nodeptr->item->decompressedSize, manager->logger, nodeptr->name, nodeptr->path, nodeptr->item);
 		free(itmData);
 		manager->fileViewerManager->addItem(itm);
+
+		manager->tagManager.addTag(nodeptr->item);
 		// we still don't want to display it in the file list
 		return;
 	}
@@ -444,7 +452,7 @@ void ModuleDisplayManager::showNode(ModuleNode* node, bool outOfTree){
 
 	// delete the old list, we don't want it anymore
 	for(int i = 0;i < fileEntries.size();i++){
-		fileEntries[i]->~FileEntry();
+		delete fileEntries[i];
 	}
 	fileEntries.clear();
 
