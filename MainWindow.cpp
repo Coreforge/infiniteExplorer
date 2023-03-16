@@ -57,11 +57,9 @@ MainWindow::MainWindow(){
 	fileMenuItem->show();
 
 	// change this once there are more tools!
-#ifdef USE_FUSE
 	Gtk::MenuItem* toolsMenuItem = new Gtk::MenuItem("Tools");
 	menuBar->add(*toolsMenuItem);
 	toolsMenuItem->show();
-#endif
 
 
 	Gtk::Menu* fileMenu = new Gtk::Menu;
