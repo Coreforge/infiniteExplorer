@@ -77,10 +77,23 @@ MainWindow::MainWindow(){
 	fileMenu->add(*ExportItem);
 	fileMenuItem->show();
 	fileMenu->show();
+
+	// Tools menu
+	Gtk::Menu* toolsMenu = new Gtk::Menu();
+	toolsMenu->show();
+	toolsMenuItem->set_submenu(*toolsMenu);
+
 	ExportItem->show();
 	ExportItem->set_accel_path("</Ctrl + E");
 	ExportItem->add_accelerator("activate", accelGroup, GDK_KEY_E, Gdk::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
 	ExportItem->signal_activate().connect([moduleManager] {moduleManager->exportEntryDialog();});
+	BatchExtractTexItem.set_label("Batch Extract Textures");
+	toolsMenu->add(BatchExtractTexItem);
+	BatchExtractTexItem.show();
+	BatchExtractTexItem.signal_activate().connect([moduleManager]{
+		moduleManager->batchExtractTextures();
+	});
+
 
 	openModuleItem->show();
 	openModuleItem->signal_activate().connect([moduleManager] {moduleManager->openModuleDialog();});
@@ -95,10 +108,6 @@ MainWindow::MainWindow(){
 	});
 
 #ifdef USE_FUSE
-	// Tools menu
-	Gtk::Menu* toolsMenu = new Gtk::Menu();
-	toolsMenu->show();
-	toolsMenuItem->set_submenu(*toolsMenu);
 
 	// FUSE stuff
 	Gtk::MenuItem* fuseMenuItem = new Gtk::MenuItem("Mount/Unmount");

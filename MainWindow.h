@@ -12,4 +12,6 @@ public:
 	//~MainWindow();
 	Glib::RefPtr<Gtk::Application> app;
 	Glib::RefPtr<Gtk::AccelGroup> accelGroup;
+
+	Gtk::MenuItem BatchExtractTexItem;
 };

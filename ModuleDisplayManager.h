@@ -24,6 +24,7 @@ public:
 	void showNode(ModuleNode* node, bool outOfTree = false);	// if outOfTree is set, currentNode won't be updated (for displaying stuff like search results)
 	void setupCallbacks();
 	void searchNodes(ModuleNode* from, std::string query);
+	void batchExtractTextures();
 
 	ModuleNode* currentNode = nullptr;
 	FileList* fileList;
@@ -44,6 +45,8 @@ private:
 	void exportNode(ModuleNode* node, std::string path, bool fullPath = false);	// recursive function to export a node
 
 	void loadPathRecursive(std::string path);
+
+	void batchTexturesRecursive(ModuleNode* node, std::string path);
 
 	// expects a cleaned up query
 	int searchNodesRecursive(ModuleNode* node, std::string query, int index);

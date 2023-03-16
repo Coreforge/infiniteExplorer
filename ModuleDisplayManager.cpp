@@ -9,6 +9,10 @@
 
 //#include "libInfinite/tags/TagLoader.h"
 
+#include "libInfinite/BitmapHandle.h"
+
+#include "stb_image_write.h"
+
 #ifdef _WIN64
 #include <windows.h>
 #include <fileapi.h>
@@ -33,8 +37,8 @@ inline std::string cleanSearchString(std::string str){
 	return str;
 }
 
-ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger){//,
-						//tagManager(&modMan,logger){
+ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger),
+						tagManager(&modMan,logger){
 	this->logger = logger;
 	//modMan = ModuleManager(logger);
 
@@ -237,6 +241,51 @@ void ModuleDisplayManager::loadPathRecursive(std::string path){
 #endif
 }
 
+void ModuleDisplayManager::batchExtractTextures(){
+	Gtk::FileChooserDialog fileChooser("Export to",Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+	fileChooser.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+	fileChooser.add_button("_Save", Gtk::RESPONSE_OK);
+
+	int response = fileChooser.run();
+	fileChooser.close();
+
+	if(response == Gtk::RESPONSE_OK){
+		std::string path = fileChooser.get_filename();
+		batchTexturesRecursive(currentNode, path);
+	}
+}
+
+void ModuleDisplayManager::batchTexturesRecursive(ModuleNode* node, std::string path){
+	if(node->type == NODE_TYPE_DIRECTORY){
+		for(auto const&[name,currentNode] : node->children){
+			std::string subPath = path + std::string("/") + name;
+			batchTexturesRecursive(currentNode, subPath);
+		}
+		return;
+	}
+	if(node->item != nullptr){
+		if(node->item->tagType == 'bitm'){
+			BitmapHandle bh(node->item,logger);
+			for(int idx = 0; idx < bh.frameCount; idx++){
+				std::string outPath = path;// + std::string("/") + node->name;
+				if(idx == 0){
+					outPath += std::string(".png");
+				} else {
+					outPath += std::string("_") + std::to_string(idx) + std::string(".png");
+				}
+
+				void* data = bh.frames[idx].getR8G8B8A8Data(0);
+				if(data == nullptr){
+					continue;
+				}
+				stbi_write_png(outPath.c_str(), bh.frames[idx].mipMaps[0].width, bh.frames[idx].mipMaps[0].height,
+									4, data, bh.frames[idx].mipMaps[0].width * 4);
+				free(data);
+			}
+		}
+	}
+}
+
 void ModuleDisplayManager::exportEntryDialog(){
 	//printf("Export\n");
 	auto selected = fileList->getSelectedEntries();
@@ -371,7 +420,7 @@ void showNodeCallback(void* node,void* data){
 		free(itmData);
 		manager->fileViewerManager->addItem(itm);
 
-		//manager->tagManager.addTag(nodeptr->item);
+		//manager->tagManager.getTag(nodeptr->item->assetID);
 		// we still don't want to display it in the file list
 		return;
 	}
