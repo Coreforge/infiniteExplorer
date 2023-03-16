@@ -37,8 +37,8 @@ inline std::string cleanSearchString(std::string str){
 	return str;
 }
 
-ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger),
-						tagManager(&modMan,logger){
+ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger){//,
+						//tagManager(&modMan,logger){
 	this->logger = logger;
 	//modMan = ModuleManager(logger);
 
