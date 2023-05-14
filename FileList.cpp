@@ -77,7 +77,7 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	});
 
 	treeView.add_events(Gdk::BUTTON_PRESS_MASK);
-	treeView.signal_button_release_event().connect([this] (GdkEventButton* button) -> bool{
+	treeView.signal_button_press_event().connect([this] (GdkEventButton* button) -> bool{
 		if(button->button == GDK_BUTTON_SECONDARY && this->treeView.get_selection()->get_selected_rows().size() > 0){
 			Gtk::ListStore::Row row = *this->store->get_iter(this->treeView.get_selection()->get_selected_rows()[0]);
 			FileEntry* ent = row.get_value(entryColumn);
@@ -89,7 +89,7 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 			propNode = ent->nodeRef;
 		}
 		return false;
-	});
+	},false);
 
 
 
