@@ -141,7 +141,9 @@ FileList::FileList(Gtk::Container* window, Glib::RefPtr<Gtk::Builder> builder){
 	propertiesMenuItem->show();
 	contextMenu->add(*propertiesMenuItem);
 	propertiesMenuItem->signal_activate().connect([this]{
-		propDialog.reset(new PropertiesDialog(propNode, manager));
+		Gtk::ListStore::Row row = *this->store->get_iter(this->treeView.get_selection()->get_selected_rows()[0]);
+		FileEntry* ent = row.get_value(entryColumn);
+		propDialog.reset(new PropertiesDialog(ent->nodeRef, manager));
 		propDialog->show();
 	});
 
