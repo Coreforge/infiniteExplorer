@@ -265,6 +265,7 @@ void DataTableViewer::populateTable(DataTable* table){
 		entries.clear();
 		return;
 	}
+	view->set_model(Glib::RefPtr<Gtk::TreeStore>());
 	store->clear();
 	entries.clear();
 	entries.reserve(table->entries.size());
@@ -283,4 +284,5 @@ void DataTableViewer::populateTable(DataTable* table){
 	}
 	statusBlockCount->set_label(std::to_string(item->dataTable.entries.size()));
 	statusShownBlocks->set_label(std::to_string(start) + "-" + std::to_string(start + count));
+	view->set_model(store);
 }

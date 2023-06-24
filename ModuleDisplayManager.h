@@ -6,7 +6,7 @@
 #include "FileViewerManager.h"
 #include "libInfinite/module/ModuleManager.h"
 
-//#include "libInfinite/tags/TagManager.h"
+#include "libInfinite/tags/TagManager.h"
 
 #include <string>
 
@@ -25,6 +25,7 @@ public:
 	void setupCallbacks();
 	void searchNodes(ModuleNode* from, std::string query);
 	void batchExtractTextures();
+	void displayItem(ModuleItem* item, std::string name, std::string path);
 
 	ModuleNode* currentNode = nullptr;
 	FileList* fileList;
@@ -32,7 +33,7 @@ public:
 
 	FileViewerManager* fileViewerManager;
 
-	//TagManager tagManager;
+	TagManager tagManager;
 
 
 	ModuleManager modMan;

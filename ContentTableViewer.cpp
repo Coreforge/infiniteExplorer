@@ -20,6 +20,7 @@ ContentTableViewer::ContentTableViewer() {
 
 	record.add(TypeColumn);
 	record.add(TypeIDColumn);
+	record.add(IsExternalColumn);
 	record.add(RefColumn);
 	record.add(RefSizeColumn);
 	record.add(ParentColumn);
@@ -31,6 +32,7 @@ ContentTableViewer::ContentTableViewer() {
 
 	TypeViewColumn = new Gtk::TreeViewColumn("Type",TypeColumn);
 	TypeIDViewColumn = new Gtk::TreeViewColumn("Type ID",TypeIDColumn);
+	IsExternalViewColumn= new Gtk::TreeViewColumn("Is External",IsExternalColumn);
 	RefViewColumn = new Gtk::TreeViewColumn("Reference Index",RefColumn);
 	RefSizeViewColumn = new Gtk::TreeViewColumn("Reference Size",RefSizeColumn);
 	ParentViewColumn = new Gtk::TreeViewColumn("Parent Index",ParentColumn);
@@ -40,6 +42,8 @@ ContentTableViewer::ContentTableViewer() {
 	TypeViewColumn->set_min_width(10);
 	TypeIDViewColumn->set_resizable(true);
 	TypeIDViewColumn->set_min_width(10);
+	IsExternalViewColumn->set_resizable(true);
+	IsExternalViewColumn->set_min_width(10);
 	RefViewColumn->set_resizable(true);
 	RefViewColumn->set_min_width(10);
 	RefSizeViewColumn->set_resizable(true);
@@ -54,6 +58,7 @@ ContentTableViewer::ContentTableViewer() {
 
 	view->append_column(*TypeViewColumn);
 	view->append_column(*TypeIDViewColumn);
+	view->append_column(*IsExternalViewColumn);
 	view->append_column(*RefViewColumn);
 	view->append_column(*RefSizeViewColumn);
 	view->append_column(*ParentViewColumn);
@@ -299,12 +304,14 @@ void ContentTableViewer::setItem(Item* item){
 // combining them should be possible
 
 void ContentTableViewer::fillStore(){
+	view->set_model(Glib::RefPtr<Gtk::TreeStore>());
 	store->clear();
 	for(int i = 0; i < item->contentTable.rootEntries.size(); i++){
 		// every top-level entry
 		Gtk::TreeModel::iterator iter = store->append();
 		iter->set_value(TypeColumn, getTypeString(item->contentTable.rootEntries[i]->type));
 		iter->set_value(TypeIDColumn, std::to_string(item->contentTable.rootEntries[i]->type_id));
+		iter->set_value(IsExternalColumn, std::to_string(item->contentTable.rootEntries[i]->is_external));
 		iter->set_value(RefColumn, uint32ToHexString(item->contentTable.rootEntries[i]->ref));
 		if(item->contentTable.rootEntries[i]->ref != 0xffffffff){
 			iter->set_value(RefSizeColumn, uint32ToHexString(item->dataTable.entries[item->contentTable.rootEntries[i]->ref].size));
@@ -320,6 +327,7 @@ void ContentTableViewer::fillStore(){
 			fillStoreRecursive(item->contentTable.rootEntries[i]->children[c], iter);
 		}
 	}
+	view->set_model(store);
 }
 
 void ContentTableViewer::fillStoreRecursive(ContentTableEntry* entry, Gtk::TreeStore::iterator iter){
@@ -327,6 +335,7 @@ void ContentTableViewer::fillStoreRecursive(ContentTableEntry* entry, Gtk::TreeS
 	Gtk::TreeModel::iterator this_it = store->append(iter->children());
 	this_it->set_value(TypeColumn, getTypeString(entry->type));
 	this_it->set_value(TypeIDColumn, std::to_string(entry->type_id));
+	this_it->set_value(IsExternalColumn, std::to_string(entry->is_external));
 	this_it->set_value(RefColumn, uint32ToHexString(entry->ref));
 	if(entry->ref != 0xffffffff){
 		this_it->set_value(RefSizeColumn, uint32ToHexString(item->dataTable.entries[entry->ref].size));

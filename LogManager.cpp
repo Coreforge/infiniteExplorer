@@ -57,10 +57,12 @@ LogManager::~LogManager(){
 void LogManager::setTextBuffer(Gtk::TextBuffer* textBuffer){
 	this->textBuffer = textBuffer;
 	createTags();
+	updateBuffer();
 }
 
 void LogManager::setTextView(Gtk::TextView* view){
 	this->view = view;
+	updateBuffer();
 }
 
 void LogManager::submitLog(const char* buf, uint32_t len){

@@ -5,10 +5,14 @@
 #include "ManagedLogger.h"
 #include "FileViewerManager.h"
 
+#include <fstream>
+
 #ifdef USE_FUSE
 #include "FuseProvider.h"
 #include "FuseDialog.h"
 #endif
+
+MainWindow* globalWindowPointer;
 
 MainWindow::MainWindow(){
 
@@ -25,12 +29,25 @@ MainWindow::MainWindow(){
 
 	ManagedLogger* fuseLogger = new ManagedLogger("[FUSE]",logManager);
 
-	ModuleDisplayManager* moduleManager = new ModuleDisplayManager((Logger*)libInfiniteLogger);
+	moduleManager = new ModuleDisplayManager((Logger*)libInfiniteLogger);
 	//Logger* logger = new ConsoleLogger;
 	//moduleManager->logger = (Logger*)libInfiniteLogger;
 
 
 	// logging backend is done
+
+	// load the known hashes file now, because why not
+	lut.setLogger(libInfiniteLogger);
+	std::ifstream hashLUT("res/hashes.txt");
+	if(hashLUT.is_open()){
+		std::string lutData;
+		std::stringstream stream;
+		stream << hashLUT.rdbuf();
+		//hashLUT >> lutData;
+		lut.loadMap(stream.str());
+	} else {
+		libInfiniteLogger->log(LOG_LEVEL_ERROR, "Failed to open hash lookup table\n");
+	}
 
 
 	// set up the basic FUSE stuff
@@ -84,24 +101,31 @@ MainWindow::MainWindow(){
 	ExportItem->show();
 	ExportItem->set_accel_path("</Ctrl + E");
 	ExportItem->add_accelerator("activate", accelGroup, GDK_KEY_E, Gdk::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
-	ExportItem->signal_activate().connect([moduleManager] {moduleManager->exportEntryDialog();});
+	ExportItem->signal_activate().connect([this] {moduleManager->exportEntryDialog();});
 	BatchExtractTexItem.set_label("Batch Extract Textures");
 	toolsMenu->add(BatchExtractTexItem);
 	BatchExtractTexItem.show();
-	BatchExtractTexItem.signal_activate().connect([moduleManager]{
+	BatchExtractTexItem.signal_activate().connect([this]{
 		moduleManager->batchExtractTextures();
+	});
+
+	viewer3DItem.set_label("Open 3D Viewer");
+	viewer3DItem.show();
+	toolsMenu->add(viewer3DItem);
+	viewer3DItem.signal_activate().connect([this]{
+		viewer3D.createWindow(IEViewer::IEV_GLFW, 1920, 1080);
 	});
 
 
 	openModuleItem->show();
-	openModuleItem->signal_activate().connect([moduleManager] {moduleManager->openModuleDialog();});
+	openModuleItem->signal_activate().connect([this] {moduleManager->openModuleDialog();});
 	openModuleItem->add_accelerator("activate", accelGroup, GDK_KEY_O, Gdk::CONTROL_MASK, Gtk::ACCEL_VISIBLE);
 
 	openPathItem->show();
-	openPathItem->signal_activate().connect([moduleManager] {moduleManager->openPathDialog();});
+	openPathItem->signal_activate().connect([this] {moduleManager->openPathDialog();});
 
 	openFileItem->show();
-	openFileItem->signal_activate().connect([moduleManager]{
+	openFileItem->signal_activate().connect([this]{
 		moduleManager->loadFileDialog();
 	});
 
@@ -235,4 +259,12 @@ MainWindow::MainWindow(){
 		return false;
 	});
 #endif
+
+	// set the global pointer to this instance
+	globalWindowPointer = this;
+
 }
+
+
+
+

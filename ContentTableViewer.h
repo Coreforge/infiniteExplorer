@@ -28,6 +28,7 @@ private:
 
 	Gtk::TreeViewColumn* TypeViewColumn;
 	Gtk::TreeViewColumn* TypeIDViewColumn;
+	Gtk::TreeViewColumn* IsExternalViewColumn;
 	Gtk::TreeViewColumn* RefViewColumn;
 	Gtk::TreeViewColumn* RefSizeViewColumn;
 	Gtk::TreeViewColumn* ParentViewColumn;
@@ -38,6 +39,7 @@ private:
 	// Columns for the TreeStore
 	Gtk::TreeModelColumn<std::string> TypeColumn;
 	Gtk::TreeModelColumn<std::string> TypeIDColumn;
+	Gtk::TreeModelColumn<std::string> IsExternalColumn;
 	Gtk::TreeModelColumn<std::string> RefColumn;
 	Gtk::TreeModelColumn<std::string> RefSizeColumn;
 	Gtk::TreeModelColumn<std::string> ParentColumn;
@@ -49,6 +51,7 @@ private:
 	enum{
 		TYPE_COLUMN,
 		TYPE_ID_COLUMN,
+		IS_EXTERNAL_COLUMN,
 		REF_COLUMN,
 		REF_SIZE_COLUMN,
 		PARENT_COLUMN,

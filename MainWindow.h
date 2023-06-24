@@ -3,8 +3,12 @@
 #include <vector>
 #include "libInfinite/logger/ConsoleLogger.h"
 
+#include "libInfinite/StringIDLUT.h"
+
 #include "FileList.h"
 #include "ModuleDisplayManager.h"
+
+#include "3D/interface/IEViewer.h"
 
 class MainWindow : public Gtk::Window{
 public:
@@ -14,4 +18,10 @@ public:
 	Glib::RefPtr<Gtk::AccelGroup> accelGroup;
 
 	Gtk::MenuItem BatchExtractTexItem;
+	Gtk::MenuItem viewer3DItem;
+
+	ModuleDisplayManager* moduleManager;
+
+	IEViewer viewer3D;
+	StringIDLUT lut;
 };

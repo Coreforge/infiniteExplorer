@@ -2,6 +2,9 @@
 
 #include "libInfinite/BitmapHandle.h"
 #include "BitmapViewer.h"
+#include "MeshViewer.h"
+#include "BspViewer.h"
+#include "VartViewer.h"
 
 InfiniteFileViewer::InfiniteFileViewer(){
 	notebook = new Gtk::Notebook();
@@ -45,6 +48,31 @@ void InfiniteFileViewer::setItem(Item* item){
 		bmv->setItem(item);
 		notebook->append_page(*bmv,bmv->getName());
 		optionalViewers.emplace_back(bmv);
+	}
+
+	if(item->moduleItem->tagType == 'mode'){
+			// add a BitmapViewer
+		MeshViewer* mv = new MeshViewer();
+		mv->show();
+		mv->setItem(item);
+		notebook->append_page(*mv,mv->getName());
+		optionalViewers.emplace_back(mv);
+	}
+
+	if(item->moduleItem->tagType == 'sbsp'){
+		BspViewer* bv = new BspViewer();
+		bv->show();
+		bv->setItem(item);
+		notebook->append_page(*bv,bv->getName());
+		optionalViewers.emplace_back(bv);
+	}
+
+	if(item->moduleItem->tagType == 'vart'){
+		VartViewer* bv = new VartViewer();
+		bv->show();
+		bv->setItem(item);
+		notebook->append_page(*bv,bv->getName());
+		optionalViewers.emplace_back(bv);
 	}
 }
 

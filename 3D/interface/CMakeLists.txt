@@ -1,0 +1,27 @@
+target_sources(infiniteExplorer PRIVATE ${CMAKE_CURRENT_LIST_DIR}/IEViewer.cpp)
+target_sources(infiniteExplorer PRIVATE ${CMAKE_CURRENT_LIST_DIR}/InfMeshResource.cpp)
+target_sources(infiniteExplorer PRIVATE ${CMAKE_CURRENT_LIST_DIR}/InfMesh.cpp)
+target_sources(infiniteExplorer PRIVATE ${CMAKE_CURRENT_LIST_DIR}/GLBufferHandle.cpp)
+target_sources(infiniteExplorer PRIVATE ${CMAKE_CURRENT_LIST_DIR}/ManagedGLBufferHandle.cpp)
+target_sources(infiniteExplorer PRIVATE ${CMAKE_CURRENT_LIST_DIR}/InfGLModelRenderer.cpp)
+
+target_sources(infiniteExplorer PRIVATE ${CMAKE_CURRENT_LIST_DIR}/VAOHandle.cpp)
+
+find_package(GLEW REQUIRED)
+if (GLEW_FOUND)
+    include_directories(${GLEW_INCLUDE_DIRS})
+    #target_link_libraries(infiniteExplorer Glew::Glew)
+    message("glew libraries: ${GLEW_LIBRARIES}")
+    message("glew static libraries: ${GLEW_STATIC_LIBRARIES}")
+    message("glew shared libraries: ${GLEW_SHARED_LIBRARIES}")
+else()
+    target_link_libraries(infiniteExplorer GL GLEW)
+endif()
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(Glew REQUIRED IMPORTED_TARGET glew)
+target_link_libraries( infiniteExplorer PkgConfig::Glew)
+
+find_package(OpenGL REQUIRED)
+message("gl libraries: ${OPENGL_LIBRARIES}")
+target_link_libraries( infiniteExplorer OpenGL::GL OpenGL::GLU)

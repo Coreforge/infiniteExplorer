@@ -277,9 +277,9 @@ bool StringTableViewer::regexCheck(std::string str){
 void StringTableViewer::filterUniqueEntries(){
 	// filtering for unique entries only makes sense for strings with valid indices
 	uniqueEntries.clear();
-	for(int i = 0; i < item->stringTable.strings.size(); i++){
-		if(uniqueEntries.count(item->stringTable.strings[i].index) == 0){
-			uniqueEntries.insert({item->stringTable.strings[i].index,&item->stringTable.strings[i]});
+	for(int i = 0; i < item->tagRefFieldTable.strings.size(); i++){
+		if(uniqueEntries.count(item->tagRefFieldTable.strings[i].index) == 0){
+			uniqueEntries.insert({item->tagRefFieldTable.strings[i].index,&item->tagRefFieldTable.strings[i]});
 		}
 	}
 	statusUniqueCount->set_label(std::to_string(uniqueEntries.size()));
@@ -304,8 +304,8 @@ void StringTableViewer::calculateCounts(){
 
 	if(indexMode == INDEX_VALID || indexMode == INDEX_BOTH){
 		if(showDuplicates){
-			for(int i = 0; i < item->stringTable.strings.size(); i++){
-				if(!regexCheck(item->stringTable.strings[i].string)) continue;
+			for(int i = 0; i < item->tagRefFieldTable.strings.size(); i++){
+				if(!regexCheck(item->tagRefFieldTable.strings[i].string)) continue;
 				displayableStrings++;
 			}
 		} else {
@@ -316,14 +316,15 @@ void StringTableViewer::calculateCounts(){
 		}
 	}
 	if(indexMode == INDEX_INVALID || indexMode == INDEX_BOTH){
-		for(int i = 0; i < item->stringTable.invalidStrings.size(); i++){
-			if(!regexCheck(item->stringTable.invalidStrings[i].string)) continue;
+		for(int i = 0; i < item->tagRefFieldTable.invalidStrings.size(); i++){
+			if(!regexCheck(item->tagRefFieldTable.invalidStrings[i].string)) continue;
 			displayableStrings++;
 		}
 	}
 }
 
 void StringTableViewer::updateRecord(){
+	view->set_model(Glib::RefPtr<Gtk::TreeStore>());
 	store->clear();
 	if(this->item == nullptr){
 		return;
@@ -331,24 +332,24 @@ void StringTableViewer::updateRecord(){
 	uint32_t count = 0;
 	uint32_t visibleCount = 0;
 	// count is the total number of string table entries in this item
-	count += item->stringTable.invalidStrings.size();
-	count += item->stringTable.strings.size();
+	count += item->tagRefFieldTable.invalidStrings.size();
+	count += item->tagRefFieldTable.strings.size();
 	int start = (page-1) * pageSize;
 	if(indexMode == INDEX_VALID || indexMode == INDEX_BOTH){
 		if(showDuplicates){
-			for(int i = start; i < item->stringTable.strings.size(); i++){
+			for(int i = start; i < item->tagRefFieldTable.strings.size(); i++){
 				if(visibleCount >= pageSize) break;
-				if(!regexCheck(item->stringTable.strings[i].string)) continue;
+				if(!regexCheck(item->tagRefFieldTable.strings[i].string)) continue;
 				Gtk::TreeIter iter = store->append();
-				iter->set_value(INDEX_COLUMN, item->stringTable.strings[i].index);
-				iter->set_value(TYPE_COLUMN, item->stringTable.strings[i].type);
-				iter->set_value(STRING_COLUMN, item->stringTable.strings[i].string);
+				iter->set_value(INDEX_COLUMN, item->tagRefFieldTable.strings[i].index);
+				iter->set_value(TYPE_COLUMN, item->tagRefFieldTable.strings[i].fieldBlockIndex);
+				iter->set_value(STRING_COLUMN, item->tagRefFieldTable.strings[i].string);
 				iter->set_value(ISVALID_COLUMN, true);
 				visibleCount++;
 				start++;
 			}
 		} else {
-			std::map<uint32_t,StringTableEntry*>::iterator it = uniqueEntries.begin();
+			std::map<uint32_t,TagRefFieldTableEntry*>::iterator it = uniqueEntries.begin();
 			// move the iterator to where the current page starts
 			for(int i = 0; i < start && it != uniqueEntries.end(); i++){
 				it++;
@@ -362,7 +363,7 @@ void StringTableViewer::updateRecord(){
 				}
 				Gtk::TreeIter iter = store->append();
 				iter->set_value(INDEX_COLUMN, it->second->index);
-				iter->set_value(TYPE_COLUMN, it->second->type);
+				iter->set_value(TYPE_COLUMN, it->second->fieldBlockIndex);
 				iter->set_value(STRING_COLUMN, it->second->string);
 				iter->set_value(ISVALID_COLUMN, true);
 				visibleCount++;
@@ -374,13 +375,13 @@ void StringTableViewer::updateRecord(){
 	if(indexMode == INDEX_INVALID || indexMode == INDEX_BOTH){
 		//start = (page-1-(visibleCount/pageSize)) * pageSize;
 		printf("%d\n",start);
-		for(int i = start; i < item->stringTable.invalidStrings.size(); i++){
+		for(int i = start; i < item->tagRefFieldTable.invalidStrings.size(); i++){
 			if(visibleCount >= pageSize) break;
-			if(!regexCheck(item->stringTable.invalidStrings[i].string)) continue;
+			if(!regexCheck(item->tagRefFieldTable.invalidStrings[i].string)) continue;
 			Gtk::TreeIter iter = store->append();
-			iter->set_value(INDEX_COLUMN, item->stringTable.invalidStrings[i].index);
-			iter->set_value(TYPE_COLUMN, item->stringTable.invalidStrings[i].type);
-			iter->set_value(STRING_COLUMN, item->stringTable.invalidStrings[i].string);
+			iter->set_value(INDEX_COLUMN, item->tagRefFieldTable.invalidStrings[i].index);
+			iter->set_value(TYPE_COLUMN, item->tagRefFieldTable.invalidStrings[i].fieldBlockIndex);
+			iter->set_value(STRING_COLUMN, item->tagRefFieldTable.invalidStrings[i].string);
 			iter->set_value(ISVALID_COLUMN, false);
 			visibleCount++;
 			start++;
@@ -388,4 +389,5 @@ void StringTableViewer::updateRecord(){
 	}
 
 	statusStringCount->set_label(std::to_string(displayableStrings) + "/" + std::to_string(count));
+	view->set_model(store);
 }

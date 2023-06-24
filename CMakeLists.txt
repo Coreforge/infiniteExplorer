@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.6.0)
 project(infiniteExplorer VERSION 0.1.0)
 
+cmake_policy(SET CMP0079 NEW)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 17)
@@ -12,6 +13,8 @@ set(INFINITE_EXPORT_OODLE ON)
 set(INFINITE_COPY_OODLE_DLL ON)
 set(INFINITE_OODLE_DLL oo2core_8_win64.dll)
 set(FUSE ON)
+
+option(YTTRIUM_3D_VIEWER "Build the 3D viewer" ON)
 
 
 ############################################################################
@@ -41,6 +44,13 @@ if(${INFINITE_COPY_OODLE_DLL})
 	configure_file(libInfinite/${INFINITE_OODLE_DLL} ${INFINITE_OODLE_DLL} COPYONLY)
 endif()
 
+
+# 3D stuff
+if(YTTRIUM_3D_VIEWER)
+	include(3D/CMakeLists.txt)
+	target_include_directories(infiniteExplorer PRIVATE 3D/yttrium/)
+	target_link_libraries(infiniteExplorer yttrium)
+endif()
 
 # FUSE
 if(FUSE)
@@ -117,7 +127,12 @@ set(sources PRIVATE main.cpp
 					ContentTableViewer.cpp
 					StringTableViewer.cpp
 					TextureViewer.cpp
-					StringUtils.cpp)
+					StringUtils.cpp
+					MeshViewer.cpp
+					BspViewer.cpp
+					VartViewer.cpp
+					VectorViewer.cpp
+					materialDialog.cpp)
 					
 target_sources(infiniteExplorer PRIVATE BitmapViewer.cpp)
 		

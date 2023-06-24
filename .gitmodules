@@ -1,3 +1,6 @@
 [submodule "libInfinite"]
 	path = libInfinite
 	url = git@github.com:Coreforge/libInfinite.git
+[submodule "yttrium"]
+	path = 3D/yttrium
+	url = git@github.com:Coreforge/yttrium.git

@@ -7,7 +7,7 @@
 #include "libInfinite/Item.h"
 
 
-//#include "libInfinite/tags/TagLoader.h"
+#include "libInfinite/tags/TagLoader.h"
 
 #include "libInfinite/BitmapHandle.h"
 
@@ -37,8 +37,8 @@ inline std::string cleanSearchString(std::string str){
 	return str;
 }
 
-ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger){//,
-						//tagManager(&modMan,logger){
+ModuleDisplayManager::ModuleDisplayManager(Logger* logger) : modMan(logger),
+						tagManager(&modMan,logger){
 	this->logger = logger;
 	//modMan = ModuleManager(logger);
 
@@ -411,20 +411,25 @@ void showNodeCallback(void* node,void* data){
 		// it's not a directory, so there's no point in displaying it. Try to load it instead
 		//printf("Trying to load %s\n",nodeptr->path.c_str());
 
-		uint8_t* itmData = nodeptr->item->extractData();
-		if(itmData == nullptr){
-			// libInfinite already logged the error, no need to do it again
-			return;
-		}
-		Item* itm = new Item(itmData, nodeptr->item->decompressedSize, manager->logger, nodeptr->name, nodeptr->path, nodeptr->item);
-		free(itmData);
-		manager->fileViewerManager->addItem(itm);
-
-		//manager->tagManager.getTag(nodeptr->item->assetID);
-		// we still don't want to display it in the file list
+		manager->displayItem(nodeptr->item, nodeptr->name, nodeptr->path);
 		return;
 	}
 	manager->showNode((ModuleNode*)node);
+}
+
+void ModuleDisplayManager::displayItem(ModuleItem* item, std::string name, std::string path){
+	uint8_t* itmData = item->extractData();
+	if(itmData == nullptr){
+		// libInfinite already logged the error, no need to do it again
+		return;
+	}
+	Item* itm = new Item(itmData, item->decompressedSize, logger, name, path, item);
+	itm->tagManager = &tagManager;
+	free(itmData);
+	fileViewerManager->addItem(itm);
+
+
+	tagManager.getTag(item->assetID);
 }
 
 void search(void* manager, std::string query){

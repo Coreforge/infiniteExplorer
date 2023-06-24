@@ -91,7 +91,7 @@ private:
 	Gtk::Label* statusUniqueCountLabel;
 	Gtk::Label* statusUniqueCount;
 
-	std::map<uint32_t,StringTableEntry*> uniqueEntries;
+	std::map<uint32_t,TagRefFieldTableEntry*> uniqueEntries;
 
 	uint32_t displayableStrings;
 
