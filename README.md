@@ -10,6 +10,15 @@ Making the contents of the module available by mounting them requires FUSE3 on l
 [HIMU](https://github.com/MontagueM/HaloInfiniteModuleUnpacker) and [HIME](https://github.com/MontagueM/HaloInfiniteModelExtractor) by MontagueM   
 detex by Harm Hanemaaijer and Contributors (see [here](https://github.com/hglm/detex/blob/master/LICENSE) for the license)  
 [stb_image_write](https://github.com/nothings/stb/blob/master/stb_image_write.h) used for texture export, see source for authors
+# Requirements
+The 3D viewer requires OpenGL 4.6, but everything else works without it.
+
+# FAQ
+## Why is it crashing when I load the modules?
+You probably have an old version of infiniteExplorer. Check if a nightly build (or a fresh build from source) works. If those still don't work, please open an issue if there isn't already one.
+
+## WinFsp complains: `FSD not found`
+There probably was an update to WinFSP. Replace `winfsp-x64.dll` with the file from `C:\Program Files (x86)\WinFsp\bin\winfsp-x64.dll`, that should fix it.
 
 # Download
 ## Stable
@@ -30,6 +39,8 @@ Dependencies are
 - gtkmm-3.0-dev
 - [linoodle](https://github.com/McSimp/linoodle) liblinoodle.so needs to be copied into libInfinite/, as does oo2core_8_win64.dll
 - libfuse3-dev (optional)
+- glfw3
+- glew
 
 to compile, run
 ```
@@ -47,6 +58,9 @@ The packages which have to be installed from MSYS2 are
 mingw-w64-x86_64-gcc
 mingw-w64-x86_64-gtkmm3
 mingw-w64-x86_64-cmake
+mingw-w64-x86_64-glew
+mingw-w64-x86_64-glfw
+mingw-w64-x86_64-glm
 ```
 
 The build process is like it is on linux, except that oodle has to be specified manually, and pkg-config doesn't work as nicely for WinFSP
