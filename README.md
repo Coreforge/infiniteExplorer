@@ -39,8 +39,9 @@ Dependencies are
 - gtkmm-3.0-dev
 - [linoodle](https://github.com/McSimp/linoodle) liblinoodle.so needs to be copied into libInfinite/, as does oo2core_8_win64.dll
 - libfuse3-dev (optional)
-- glfw3
-- glew
+- glfw3 (libglfw3-dev)
+- glew (libglew-dev)
+- glm (libglm-dev)
 
 to compile, run
 ```
