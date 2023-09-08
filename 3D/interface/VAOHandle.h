@@ -16,4 +16,7 @@ public:
 
 	std::shared_ptr<ManagedGLBufferHandle> vertexBuffers[19];
 	std::shared_ptr<ManagedGLBufferHandle> indexBuffer;
+
+	uint16_t mesh_flags;
+	uint8_t index_buffer_type;
 };

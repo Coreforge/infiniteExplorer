@@ -160,6 +160,9 @@ void LogManager::updateBuffer(){
 			}
 		}
 	}
+	if(*(buffer + rptr) == 0){
+		rptr++;
+	}
 
 	// either the buffer didn't loop, or we now displayed all messages that were at the end of the buffer
 	if(wptr > rptr){

@@ -132,6 +132,7 @@ set(sources PRIVATE main.cpp
 					BspViewer.cpp
 					VartViewer.cpp
 					VectorViewer.cpp
+					PmdfViewer.cpp
 					materialDialog.cpp)
 					
 target_sources(infiniteExplorer PRIVATE BitmapViewer.cpp)

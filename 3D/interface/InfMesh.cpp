@@ -18,6 +18,27 @@ void InfMesh::setupShader(){
 	//printf("Shader ID: %d\n",shaderId);
 }
 
+GLenum getDrawMode(uint8_t indexBufferType){
+	switch(indexBufferType){
+	case INDEX_BUFFER_TYPE_DEFAULT:
+		return GL_TRIANGLES;
+	case INDEX_BUFFER_TYPE_LINE_LIST:
+		return GL_LINES;
+	case INDEX_BUFFER_TYPE_LINE_STRIP:
+		return GL_LINE_STRIP;
+	case INDEX_BUFFER_TYPE_QUAD_LIST:
+		return GL_POINTS;	// I don't think GL really supports this
+	case INDEX_BUFFER_TYPE_TRIANGLE_LIST:
+		return GL_TRIANGLES;
+	case INDEX_BUFFER_TYPE_TRIANGLE_PATCH:
+		return GL_PATCHES;
+	case INDEX_BUFFER_TYPE_TRIANGLE_STRIP:
+		return GL_TRIANGLE_STRIP;
+	default:
+		return GL_POINTS;
+	}
+}
+
 void InfMesh::draw(ytr::Camera* camera, ytr::Transform transform){
 	glm::mat4 mat(1.0f);
 	// glm::rotate(glm::radians(-90.0f), glm::vec3(1.0,0.0,0.0))
@@ -65,17 +86,25 @@ void InfMesh::draw(ytr::Camera* camera, ytr::Transform transform){
 		glBindVertexArray(vao->name);
 
 		GLenum idxType = GL_UNSIGNED_INT;
-		if(vao->indexBuffer->stride == 2){
-			idxType = GL_UNSIGNED_SHORT;
-		} else if(vao->indexBuffer->stride == 4){
-			idxType = GL_UNSIGNED_INT;
-		} else {
-			printf("Unsupported vertex Stride: %d\n", vao->indexBuffer->stride);
+		if(!(vao->mesh_flags & MESH_FLAGS_MESH_IS_UNINDEXED_DO_NOT_MODIFY)){
+			// only dp this if there even is an index buffer
+			if(vao->indexBuffer->stride == 2){
+				idxType = GL_UNSIGNED_SHORT;
+			} else if(vao->indexBuffer->stride == 4){
+				idxType = GL_UNSIGNED_INT;
+			} else {
+				printf("Unsupported vertex Stride: %d\n", vao->indexBuffer->stride);
+			}
 		}
 
 		for(int part = 0; part < parts.size(); part++){
 			uint64_t start = parts[part].indexStart;
-			glDrawElements(GL_TRIANGLES, parts[part].indexCount, idxType, (void*)start);
+			if(!(vao->mesh_flags & MESH_FLAGS_MESH_IS_UNINDEXED_DO_NOT_MODIFY)){
+				glDrawElements(getDrawMode(vao->index_buffer_type), parts[part].indexCount, idxType, (void*)start);
+			} else {
+				// no index buffer
+				glDrawArrays(getDrawMode(vao->index_buffer_type), start, parts[part].indexCount);
+			}
 		}
 		glBindVertexArray(0);
 	}
@@ -106,13 +135,21 @@ void InfMesh::setupMesh(uint32_t meshIndex, uint32_t lod){
 		vao->setup = true;
 		return;
 	}
-	vao->indexBuffer = hndl->getIndexBufferInfo<ManagedGLBufferHandle>(idx_idx);
-	if(!vao->indexBuffer->initialized){
-		bufferInfo inf = hndl->getIndexBuffer(idx_idx);
-		vao->indexBuffer->setup(inf.size, inf.count, inf.stride, inf.data);
-	}
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vao->indexBuffer->name);
 
+	vao->mesh_flags = hndl->getMeshFlags(meshIndex);
+	vao->index_buffer_type = hndl->getIndexBufferType(meshIndex);
+
+	if(!(vao->mesh_flags & MESH_FLAGS_MESH_IS_UNINDEXED_DO_NOT_MODIFY)){
+		// hey, there's actually an index buffer!
+		vao->indexBuffer = hndl->getIndexBufferInfo<ManagedGLBufferHandle>(idx_idx);
+		if(!vao->indexBuffer->initialized){
+			bufferInfo inf = hndl->getIndexBuffer(idx_idx);
+			vao->indexBuffer->setup(inf.size, inf.count, inf.stride, inf.data);
+		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vao->indexBuffer->name);
+	}
+
+	int vertCount = 0;
 	// Vertex buffers
 	for(int i = 0; i < 19; i++){
 		uint16_t vtx_idx = hndl->getVertexBufferIndex(meshIndex, lod, i);
@@ -128,6 +165,10 @@ void InfMesh::setupMesh(uint32_t meshIndex, uint32_t lod){
 			// buffer needs to be created
 			auto inf = hndl->getVertexBuffer(vtx_idx);
 			vao->vertexBuffers[i]->setup(inf.size, inf.count, inf.stride, inf.data);
+		}
+		if((vao->mesh_flags & MESH_FLAGS_MESH_IS_UNINDEXED_DO_NOT_MODIFY) && vertCount == 0){
+			auto inf = hndl->getVertexBuffer(vtx_idx);
+			vertCount = inf.count;
 		}
 
 
@@ -158,7 +199,14 @@ void InfMesh::setupMesh(uint32_t meshIndex, uint32_t lod){
 	for(int i = 0; i < pCount; i++){
 		parts.emplace_back(hndl->getPartInfo(meshIndex, lod, i));
 	}
-
+	if(pCount == 0){
+		// add a single part for all vertices
+		partInfo pInfo;
+		pInfo.indexStart = 0;
+		pInfo.indexCount = vertCount;
+		pInfo.materialIndex = 0;
+		parts.emplace_back(pInfo);
+	}
 
 	hasValidSetup = true;
 }

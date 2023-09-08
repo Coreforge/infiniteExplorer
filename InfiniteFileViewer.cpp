@@ -4,6 +4,7 @@
 #include "BitmapViewer.h"
 #include "MeshViewer.h"
 #include "BspViewer.h"
+#include "PmdfViewer.h"
 #include "VartViewer.h"
 
 InfiniteFileViewer::InfiniteFileViewer(){
@@ -32,8 +33,8 @@ InfiniteFileViewer::InfiniteFileViewer(){
 
 void InfiniteFileViewer::setItem(Item* item){
 	dataTableViewer->setItem(item);
-	contentTableViewer->setItem(item);
-	stringTableViewer->setItem(item);
+	//contentTableViewer->setItem(item);
+	//stringTableViewer->setItem(item);
 
 	// check the tag class and maybe load additional stuff. This might turn into some spaghetti
 	//
@@ -74,6 +75,14 @@ void InfiniteFileViewer::setItem(Item* item){
 		notebook->append_page(*bv,bv->getName());
 		optionalViewers.emplace_back(bv);
 	}
+
+	if(item->moduleItem->tagType == 'pmdf'){
+			PmdfViewer* bv = new PmdfViewer();
+			bv->show();
+			bv->setItem(item);
+			notebook->append_page(*bv,bv->getName());
+			optionalViewers.emplace_back(bv);
+		}
 }
 
 InfiniteFileViewer::~InfiniteFileViewer(){
