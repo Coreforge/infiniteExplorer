@@ -17,6 +17,8 @@ private:
 	Gtk::Entry mountPointEntry;
 	//Gtk::FileChooserDialog mountPointDialog;
 	Gtk::CheckButton allowOtherCheck;
+	Gtk::CheckButton exposeDDS;
+	Gtk::CheckButton exposePNG;
 
 	Gtk::Label optionsEntryLabel;
 	Gtk::Entry optionsEntry;

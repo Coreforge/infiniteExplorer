@@ -19,6 +19,8 @@ public:
 	int unmount();
 
 	bool mounted;
+	bool exposeBitmapsDDS;
+	bool exposeBitmapsPNG;
 
 private:
 	Logger* logger;

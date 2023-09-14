@@ -63,6 +63,15 @@ FuseDialog::FuseDialog(FuseProvider* provider){
 	optionsEntry.set_width_chars(60);
 	optionsEntry.show();
 	grid.attach(optionsEntry, 1, row, 1, 1);
+	row++;
+
+	exposeDDS.set_label("Bitmaps as DDS");
+	exposeDDS.show();
+	grid.attach(exposeDDS, 0, row, 2, 1);
+	row++;
+	exposePNG.set_label("Bitmaps as PNG");
+	exposePNG.show();
+	grid.attach(exposePNG, 0, row, 2, 1);
 
 }
 
@@ -79,4 +88,6 @@ void FuseDialog::applySettings(){
 		options += optionsEntry.get_text();
 	}
 	provider->setup(mountPointEntry.get_text(),options);
+	provider->exposeBitmapsDDS = exposeDDS.get_active();
+	provider->exposeBitmapsPNG = exposePNG.get_active();
 }
