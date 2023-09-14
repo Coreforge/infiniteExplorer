@@ -152,6 +152,7 @@ void ModuleDisplayManager::loadPathRecursive(std::string path){
 
 	if (dirHandle == INVALID_HANDLE_VALUE) {
 		logger->log(LOG_LEVEL_WARNING,"Could not open %s\n", path.c_str());
+		return;
 	}
 
 	do {
@@ -197,6 +198,7 @@ void ModuleDisplayManager::loadPathRecursive(std::string path){
 	if(!dir){
 		// something went wrong opening the directory
 		logger->log(LOG_LEVEL_WARNING,"Failed to open %s\n",path.c_str());
+		return;
 	}
 	struct dirent* ent;
 	ent = readdir(dir);

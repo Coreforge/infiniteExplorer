@@ -15,6 +15,7 @@ set(INFINITE_OODLE_DLL oo2core_8_win64.dll)
 set(FUSE ON)
 
 option(YTTRIUM_3D_VIEWER "Build the 3D viewer" ON)
+option(BUILD_CLI_VERSION "Build CLI" ON)
 
 
 ############################################################################
@@ -156,6 +157,10 @@ endif()
 
 target_include_directories(infiniteExplorer PUBLIC .)
 
+if(BUILD_CLI_VERSION)
+	add_subdirectory(argparse/)
+	include(cli/CMakeLists.txt)
+endif()
 
 
 

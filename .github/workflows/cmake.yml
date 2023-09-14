@@ -62,6 +62,7 @@ jobs:
         name: infiniteExplorer
         path: |
           ${{github.workspace}}/build/infiniteExplorer.exe
+          ${{github.workspace}}/build/infiniteExplorerCLI.exe
           ${{github.workspace}}/build/detex_LICENSE
       
     - name: Upload a Build Artifact (no FUSE)
@@ -72,4 +73,5 @@ jobs:
         name: infiniteExplorer_noFUSE
         path: |
           ${{github.workspace}}/build2/infiniteExplorer.exe
+          ${{github.workspace}}/build2/infiniteExplorerCLI.exe
           ${{github.workspace}}/build2/detex_LICENSE
