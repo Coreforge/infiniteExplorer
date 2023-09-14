@@ -36,6 +36,33 @@ PmdfViewer::PmdfViewer(){
 				globalWindowPointer->viewer3D.addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, bigrotmat, -inst.scale); // glm::vec3(rotatedPos.x,rotatedPos.y,rotatedPos.z)
 			}*/
 			globalWindowPointer->viewer3D.addRenderGeo(&(dynamic_cast<pmdfHandle*>(tag))->geoHandle, 0, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0));
+			//globalWindowPointer->currentExporter->addRenderGeo(&(dynamic_cast<pmdfHandle*>(tag))->geoHandle, 0, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0),"owo");
+		}
+	});
+
+	Gtk::Button* exportBSP;
+	builder->get_widget("addExportScene", exportBSP);
+	exportBSP->signal_clicked().connect([this]{
+		if(tag != nullptr){
+			/*int c = tag->getGeoInstanceCount();
+			for(int i = 0; i < c; i++){
+				auto inst = tag->getGeoInstanceInfo(i);
+				if(inst.geo == nullptr){
+					// later, maybe add an error here (maybe like source?), but for now, just skip it
+					continue;
+				}
+				glm::mat3 rot_mat(inst.forward, inst.left, inst.up);
+				//glm::mat3 rot_mat(glm::vec3(inst.up.x,inst.forward.x,inst.left.x), glm::vec3(inst.up.y,inst.forward.y,inst.left.y), glm::vec3(inst.up.z,inst.forward.z,inst.left.z));
+				//glm::mat3 rot_mat(inst.up, inst.forward, inst.left);
+				glm::mat4 bigrotmat(rot_mat);
+				//bigrotmat = glm::transpose(bigrotmat);
+				glm::vec3 rotation = glm::eulerAngles(glm::quat_cast(rot_mat));
+				rotation = glm::degrees(rotation);
+				glm::vec4 rotatedPos = glm::rotate(glm::radians(-90.0f), glm::vec3(1.0,0.0,0.0)) * glm::vec4(inst.position,1.0f);
+				globalWindowPointer->viewer3D.addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, bigrotmat, -inst.scale); // glm::vec3(rotatedPos.x,rotatedPos.y,rotatedPos.z)
+			}*/
+			//globalWindowPointer->viewer3D.addRenderGeo(&(dynamic_cast<pmdfHandle*>(tag))->geoHandle, 0, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0));
+			globalWindowPointer->currentExporter->addRenderGeo(&(dynamic_cast<pmdfHandle*>(tag))->geoHandle, 0, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0),"owo");
 		}
 	});
 

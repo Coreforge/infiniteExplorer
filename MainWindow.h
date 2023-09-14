@@ -9,6 +9,9 @@
 #include "ModuleDisplayManager.h"
 
 #include "3D/interface/IEViewer.h"
+#include "3D/ExporterBase.h"
+
+#include "3D/AssImpExporter.h"
 
 class MainWindow : public Gtk::Window{
 public:
@@ -19,9 +22,15 @@ public:
 
 	Gtk::MenuItem BatchExtractTexItem;
 	Gtk::MenuItem viewer3DItem;
+	Gtk::MenuItem newSceneItem;
+	Gtk::MenuItem exportSceneItem;
 
 	ModuleDisplayManager* moduleManager;
 
 	IEViewer viewer3D;
 	StringIDLUT lut;
+	ExporterBase* currentExporter;
+
+private:
+	AssImpExporter assimpExporterIF;
 };

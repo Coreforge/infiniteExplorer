@@ -35,6 +35,7 @@ MeshViewer::MeshViewer(){
 	builder->get_widget("meshesTreeView", meshTreeView);
 	builder->get_widget("meshesEvtBox", meshesEvtBox);
 	builder->get_widget("utilsLoadGLButton", loadGLButton);
+	builder->get_widget("exportModel", exportButton);
 	builder->get_widget("partContextMenu", partContextMenu);
 	builder->get_widget("materialItem", partMaterialItem);
 
@@ -116,6 +117,28 @@ MeshViewer::MeshViewer(){
 		if(s->get_value(meshTypeColumn) == MTYPE_MESH){
 			int meshIndex = s->get_value(meshIndexColumn);
 			globalWindowPointer->viewer3D.addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, meshIndex, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0));
+			//globalWindowPointer->currentExporter->addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, meshIndex, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0),"owo");
+			//globalWindowPointer->viewer3D.addMesh(model.geoptr, ((Mesh*)s->get_value(meshPartPointerColumn))->meshptr, tag);
+		}
+	});
+
+
+	exportButton->signal_clicked().connect([this]{
+		if(meshTreeView->get_selection()->count_selected_rows() == 0){
+			return;
+		}
+		auto s = meshTreeView->get_selection()->get_selected();
+
+		if(s->get_value(meshTypeColumn) == MTYPE_LOD){
+			//do stuff
+			//printf("%p\n",s->get_value(meshPartPointerColumn));
+			//globalWindowPointer->viewer3D.loadLODMesh(model.geoptr, ((LODMesh*)s->get_value(meshPartPointerColumn))->lodmeshptr, tag);
+		}
+
+		if(s->get_value(meshTypeColumn) == MTYPE_MESH){
+			int meshIndex = s->get_value(meshIndexColumn);
+			//globalWindowPointer->viewer3D.addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, meshIndex, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0));
+			globalWindowPointer->currentExporter->addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, meshIndex, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0),"owo");
 			//globalWindowPointer->viewer3D.addMesh(model.geoptr, ((Mesh*)s->get_value(meshPartPointerColumn))->meshptr, tag);
 		}
 	});

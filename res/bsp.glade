@@ -19,7 +19,16 @@
       </packing>
     </child>
     <child>
-      <placeholder/>
+      <object class="GtkButton" id="addExportScene">
+        <property name="label" translatable="yes">add to exporter scene</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+      </object>
+      <packing>
+        <property name="left-attach">0</property>
+        <property name="top-attach">1</property>
+      </packing>
     </child>
     <child>
       <placeholder/>

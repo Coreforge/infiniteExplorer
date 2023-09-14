@@ -52,6 +52,8 @@ if(YTTRIUM_3D_VIEWER)
 	target_link_libraries(infiniteExplorer yttrium)
 endif()
 
+#include(net/CMakeLists.txt)
+
 # FUSE
 if(FUSE)
 	find_package(PkgConfig)
@@ -108,6 +110,9 @@ if(NOT CUSTOM_GTKMM)
 	endif()
 endif()
 
+# Assimp
+find_package(assimp REQUIRED)
+target_link_libraries(infiniteExplorer assimp)
 
 
 set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 17)

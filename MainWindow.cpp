@@ -28,6 +28,9 @@ MainWindow::MainWindow(){
 	ManagedLogger* libInfiniteLogger = new ManagedLogger("[libInfinite]",logManager);
 
 	ManagedLogger* fuseLogger = new ManagedLogger("[FUSE]",logManager);
+	ManagedLogger* assLogger = new ManagedLogger("[Assimp Exporter]",logManager);
+	assimpExporterIF.setLogger(assLogger);
+	currentExporter = &assimpExporterIF;	// there currently isn't any other one, but hopefully (maybe) in the future
 
 	moduleManager = new ModuleDisplayManager((Logger*)libInfiniteLogger);
 	//Logger* logger = new ConsoleLogger;
@@ -116,6 +119,28 @@ MainWindow::MainWindow(){
 		viewer3D.createWindow(IEViewer::IEV_GLFW, 1920, 1080);
 	});
 
+	newSceneItem.set_label("new Exporter Scene");
+	newSceneItem.show();
+	toolsMenu->add(newSceneItem);
+	newSceneItem.signal_activate().connect([this]{
+		currentExporter->newScene();
+	});
+
+	exportSceneItem.set_label("Export current scene");
+	exportSceneItem.show();
+	toolsMenu->add(exportSceneItem);
+	exportSceneItem.signal_activate().connect([this]{
+		Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Export",Gtk::FILE_CHOOSER_ACTION_SAVE);
+		fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+		fileChooser->add_button("_Save", Gtk::RESPONSE_OK);
+
+		fileChooser->set_current_name("test.dae");
+		int response = fileChooser->run();
+		fileChooser->close();
+		if(response == Gtk::RESPONSE_OK){
+			assimpExporterIF.exportScene(fileChooser->get_filename());
+		}
+	});
 
 	openModuleItem->show();
 	openModuleItem->signal_activate().connect([this] {moduleManager->openModuleDialog();});

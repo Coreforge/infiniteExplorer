@@ -52,6 +52,9 @@
                           <object class="GtkTreeView" id="meshesTreeView">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
+                            <child internal-child="selection">
+                              <object class="GtkTreeSelection"/>
+                            </child>
                           </object>
                         </child>
                       </object>
@@ -95,7 +98,7 @@
                         <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkButton" id="utilsLoadGLButton">
-                            <property name="label" translatable="yes">Load GL Buffers</property>
+                            <property name="label" translatable="yes">load Model</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -107,7 +110,17 @@
                           </packing>
                         </child>
                         <child>
-                          <placeholder/>
+                          <object class="GtkButton" id="exportModel">
+                            <property name="label" translatable="yes">add to export scene</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
                         </child>
                         <child>
                           <placeholder/>

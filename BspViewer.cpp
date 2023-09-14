@@ -19,12 +19,27 @@ BspViewer::BspViewer(){
 	loadBSP->signal_clicked().connect([this]{
 		if(tag != nullptr){
 			int c = tag->getGeoInstanceCount();
+			int f = 0;
 			for(int i = 0; i < c; i++){
 				auto inst = tag->getGeoInstanceInfo(i);
 				if(inst.geo == nullptr){
 					// later, maybe add an error here (maybe like source?), but for now, just skip it
 					continue;
 				}
+				if(inst.mesh_flags_override & MESH_FLAGS_OVERRIDE_MESH_IS_CUSTOM_SHADOW_CASTER){
+					// just don't to anything with shadowcasters for now. Other wizards are allowed though.
+					continue;
+				}
+				f++;
+
+				auto meshdata = inst.geo->getMeshData(inst.meshIndex);
+
+				glm::mat3 meshrot_mat(meshdata.forward, meshdata.left, meshdata.up);
+				glm::mat4 meshposmat = glm::translate(meshdata.position);
+				glm::mat4 meshscalemat = glm::scale(meshdata.scale);
+				glm::mat4 meshtransform = meshposmat * glm::mat4(meshrot_mat) * meshscalemat;
+
+
 				glm::mat3 rot_mat(inst.forward, inst.left, inst.up);
 				//glm::mat3 rot_mat(glm::vec3(inst.up.x,inst.forward.x,inst.left.x), glm::vec3(inst.up.y,inst.forward.y,inst.left.y), glm::vec3(inst.up.z,inst.forward.z,inst.left.z));
 				//glm::mat3 rot_mat(inst.up, inst.forward, inst.left);
@@ -34,10 +49,50 @@ BspViewer::BspViewer(){
 				rotation = glm::degrees(rotation);
 				glm::vec4 rotatedPos = glm::rotate(glm::radians(-90.0f), glm::vec3(1.0,0.0,0.0)) * glm::vec4(inst.position,1.0f);
 				globalWindowPointer->viewer3D.addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, bigrotmat, -inst.scale); // glm::vec3(rotatedPos.x,rotatedPos.y,rotatedPos.z)
+				//globalWindowPointer->currentExporter->addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, rot_mat, inst.scale,"owo");
 			}
 		}
 	});
 
+	Gtk::Button* exportBSP;
+	builder->get_widget("addExportScene", exportBSP);
+	exportBSP->signal_clicked().connect([this]{
+		if(tag != nullptr){
+			int c = tag->getGeoInstanceCount();
+			int f = 0;
+			for(int i = 0; i < c; i++){
+				auto inst = tag->getGeoInstanceInfo(i);
+				if(inst.geo == nullptr){
+					// later, maybe add an error here (maybe like source?), but for now, just skip it
+					continue;
+				}
+				if(inst.mesh_flags_override & MESH_FLAGS_OVERRIDE_MESH_IS_CUSTOM_SHADOW_CASTER){
+					// just don't to anything with shadowcasters for now. Other wizards are allowed though.
+					continue;
+				}
+				f++;
+
+				auto meshdata = inst.geo->getMeshData(inst.meshIndex);
+
+				glm::mat3 meshrot_mat(meshdata.forward, meshdata.left, meshdata.up);
+				glm::mat4 meshposmat = glm::translate(meshdata.position);
+				glm::mat4 meshscalemat = glm::scale(meshdata.scale);
+				glm::mat4 meshtransform = meshposmat * glm::mat4(meshrot_mat) * meshscalemat;
+
+
+				glm::mat3 rot_mat(inst.forward, inst.left, inst.up);
+				//glm::mat3 rot_mat(glm::vec3(inst.up.x,inst.forward.x,inst.left.x), glm::vec3(inst.up.y,inst.forward.y,inst.left.y), glm::vec3(inst.up.z,inst.forward.z,inst.left.z));
+				//glm::mat3 rot_mat(inst.up, inst.forward, inst.left);
+				glm::mat4 bigrotmat(rot_mat);
+				//bigrotmat = glm::transpose(bigrotmat);
+				glm::vec3 rotation = glm::eulerAngles(glm::quat_cast(rot_mat));
+				rotation = glm::degrees(rotation);
+				glm::vec4 rotatedPos = glm::rotate(glm::radians(-90.0f), glm::vec3(1.0,0.0,0.0)) * glm::vec4(inst.position,1.0f);
+				//globalWindowPointer->viewer3D.addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, bigrotmat, -inst.scale); // glm::vec3(rotatedPos.x,rotatedPos.y,rotatedPos.z)
+				globalWindowPointer->currentExporter->addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, rot_mat, inst.scale,"owo");
+			}
+		}
+	});
 
 	tag = nullptr;
 	item = nullptr;

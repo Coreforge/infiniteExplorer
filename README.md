@@ -42,6 +42,7 @@ Dependencies are
 - glfw3 (libglfw3-dev)
 - glew (libglew-dev)
 - glm (libglm-dev)
+- libassimp-dev
 
 to compile, run
 ```
@@ -62,6 +63,7 @@ mingw-w64-x86_64-cmake
 mingw-w64-x86_64-glew
 mingw-w64-x86_64-glfw
 mingw-w64-x86_64-glm
+mingw-w64-x86_64-assimp
 ```
 
 The build process is like it is on linux, except that oodle has to be specified manually, and pkg-config doesn't work as nicely for WinFSP

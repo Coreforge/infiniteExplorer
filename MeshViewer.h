@@ -52,6 +52,7 @@ private:
 	RenderModel model;
 
 	Gtk::Button* loadGLButton;
+	Gtk::Button* exportButton;
 
 	//std::string runExportDialog(std::string fileName);
 
