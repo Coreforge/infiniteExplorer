@@ -4,7 +4,7 @@ project(infiniteExplorer VERSION 0.1.0)
 cmake_policy(SET CMP0079 NEW)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_executable(infiniteExplorer)
 
@@ -116,7 +116,7 @@ find_package(assimp REQUIRED)
 target_link_libraries(infiniteExplorer assimp)
 
 
-set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 17)
+set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 20)
 
 set(sources PRIVATE main.cpp
 					MainWindow.cpp

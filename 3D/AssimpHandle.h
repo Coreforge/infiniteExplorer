@@ -2,8 +2,10 @@
 
 #include "../libInfinite/tags/handles/baseClasses/GenericHandle.h"
 
+#include <vector>
+
 class AssimpHandle : public GenericHandle{
 public:
-	int index;
+	std::vector<int> indicies;
 	bool initialized = false;
 };
