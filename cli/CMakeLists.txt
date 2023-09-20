@@ -1,6 +1,8 @@
 add_executable(infiniteExplorerCLI)
 
 target_link_libraries(infiniteExplorerCLI assimp)
+#target_link_libraries(infiniteExplorerCLI jsoncpp)
+#target_link_libraries(infiniteExplorerCLI ${PNG_LIBRARIES})
 set_property(TARGET infiniteExplorerCLI PROPERTY CXX_STANDARD 20)
 
 # CLI source files

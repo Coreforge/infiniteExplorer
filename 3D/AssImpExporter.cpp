@@ -2,7 +2,18 @@
 #include "AssimpHandle.h"
 
 #include <stdlib.h>
+#include <string.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
 
+#include <thread>
+#include "../stb_image_write.h"
+#include "libInfinite/BitmapBatchExtractor.h"
+#include "libInfinite/MaterialJsonExporter.h"
+
+#include <png++/png.hpp>
 
 #define INDEX_BUFFER_TYPE_TRIANGLE_LIST 3
 #define INDEX_BUFFER_TYPE_TRIANGLE_STRIP 5
@@ -45,7 +56,7 @@ void AssImpExporter::addRenderGeo(render_geometryHandle* handle, uint32_t index,
 
 void AssImpExporter::addUV(render_geometryHandle* handle, bufferInfo& inf, aiMesh* aimesh, indexReducerMap& reducermap, int uvChannel){
 	aimesh->mNumUVComponents[uvChannel] = 2;
-	aimesh->mTextureCoords[uvChannel] = (aiVector3D*)malloc(sizeof(aiVector3D) * reducermap.getSize());
+	aimesh->mTextureCoords[uvChannel] = new aiVector3D[reducermap.getSize()];//(aiVector3D*)malloc(sizeof(aiVector3D) * reducermap.getSize());
 	float uvScale[2], uvOffset[2];
 	handle->UVCompressionOffset(uvOffset, 0);
 	handle->UVCompressionScale(uvScale, 0);
@@ -57,11 +68,11 @@ void AssImpExporter::addUV(render_geometryHandle* handle, bufferInfo& inf, aiMes
 	}
 }
 
-int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, uint32_t lod, uint32_t start, uint32_t count){
+int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, uint32_t lod, uint32_t start, uint32_t count, unsigned int material){
 	// create a mesh
 	scene->mMeshes = (aiMesh**)realloc(scene->mMeshes, (scene->mNumMeshes+1) * sizeof(aiMesh*));
-	aiMesh* aimesh = (aiMesh*)malloc(sizeof(aiMesh));
-	memset(aimesh,0,sizeof(aiMesh));
+	aiMesh* aimesh = new aiMesh();//(aiMesh*)malloc(sizeof(aiMesh));
+	//memset(aimesh,0,sizeof(aiMesh));
 	scene->mMeshes[scene->mNumMeshes] = aimesh;
 	scene->mNumMeshes++;
 	int thisMesh = scene->mNumMeshes - 1;
@@ -73,6 +84,7 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 
 	aimesh->mAABB.mMin.Set(0+posOffset[0], 0+posOffset[1], 0+posOffset[2]);
 	aimesh->mAABB.mMax.Set(0+posOffset[0]+posScale[0], 0+posOffset[1]+posScale[1], 0+posOffset[2]+posScale[2]);
+	aimesh->mMaterialIndex = material;
 
 
 	/*
@@ -116,7 +128,7 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 
 			aimesh->mNumVertices = reducermap.getSize();
 			vertCount = reducermap.getSize();
-			aimesh->mVertices = (aiVector3D*)malloc(sizeof(aiVector3D) * reducermap.getSize());	// may be a memory leak, idc
+			aimesh->mVertices = new aiVector3D[reducermap.getSize()];//(aiVector3D*)malloc(sizeof(aiVector3D) * reducermap.getSize());	// may be a memory leak, idc
 			for(int mappedV = 0; mappedV < reducermap.usedIndicies.size(); mappedV++){
 				// kinda unreadable, but it just normalises the uint and applies the offset/scale
 				int v = reducermap.usedIndicies[mappedV];
@@ -148,7 +160,7 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 		// PMDFs don't have parts from what I've seen, so I don't care about that here for now
 		if(idxBufferType == INDEX_BUFFER_TYPE_TRIANGLE_LIST){
 			numFaces = vertCount / 3;
-			aimesh->mFaces = (aiFace*)malloc(sizeof(aiFace) * numFaces);
+			aimesh->mFaces = new aiFace[numFaces];//(aiFace*)malloc(sizeof(aiFace) * numFaces);
 			int cnt = 0;
 			for(int i = 0; i < numFaces; i++){
 				aimesh->mFaces[i].mNumIndices = 3;
@@ -160,7 +172,7 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 		}
 		if(idxBufferType == INDEX_BUFFER_TYPE_TRIANGLE_STRIP){
 			numFaces = vertCount - 2;
-			aimesh->mFaces = (aiFace*)malloc(sizeof(aiFace) * numFaces);
+			aimesh->mFaces = new aiFace[numFaces];//(aiFace*)malloc(sizeof(aiFace) * numFaces);
 			for(int i = 0; i < numFaces; i++){
 				aimesh->mFaces[i].mNumIndices = 3;
 				aimesh->mFaces[i].mIndices = (unsigned int*)malloc(sizeof(unsigned int) * 3);
@@ -177,11 +189,11 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 
 		if(idxBufferType == INDEX_BUFFER_TYPE_TRIANGLE_LIST){
 			numFaces = count / 3;
-			aimesh->mFaces = (aiFace*)malloc(sizeof(aiFace) * numFaces);
+			aimesh->mFaces = new aiFace[numFaces];//(aiFace*)malloc(sizeof(aiFace) * numFaces);
 			int cnt = start;
 			for(int i = 0; i < numFaces && cnt < start + count; i++){
 				aimesh->mFaces[i].mNumIndices = 3;
-				aimesh->mFaces[i].mIndices = (unsigned int*)malloc(sizeof(unsigned int) * 3);
+				aimesh->mFaces[i].mIndices = new unsigned int[3];//(unsigned int*)malloc(sizeof(unsigned int) * 3);
 				// there's a chance for a segfault here if count is not divisible by 3 (though that would mean bad part info)
 				aimesh->mFaces[i].mIndices[0] = reducermap.getIndex(getIndex(inf.stride, cnt++, inf.data));
 				aimesh->mFaces[i].mIndices[1] = reducermap.getIndex(getIndex(inf.stride, cnt++, inf.data));
@@ -199,15 +211,16 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 	return thisMesh;
 }
 
-void AssImpExporter::addRenderGeo(render_geometryHandle* handle, uint32_t index, glm::vec3 position, glm::mat3 rotation, glm::vec3 scale, std::string name, glm::mat4 meshbasetransform){
+void AssImpExporter::addRenderGeo(render_geometryHandle* handle, uint32_t index, glm::vec3 position, glm::mat3 rotation, glm::vec3 scale, std::string name, std::vector<mat_Handle*> materials, glm::mat4 meshbasetransform){
 	if(scene == nullptr){
 		logger->log(LOG_LEVEL_INFO, "No exporter scene, autocreating one\n");
 		newScene();
 	}
 	// create the node for this instance
-	aiNode* node = (aiNode*)malloc(sizeof(aiNode));
-	memset(node,0,sizeof(aiNode));
+	aiNode* node = new aiNode();//(aiNode*)malloc(sizeof(aiNode));
+	//memset(node,0,sizeof(aiNode));
 	scene->mRootNode->addChildren(1, &node);
+	node->mName = aiString(name);
 	//node->mName = name;
 
 
@@ -249,7 +262,7 @@ void AssImpExporter::addRenderGeo(render_geometryHandle* handle, uint32_t index,
 		partCount = 1;
 	}
 	node->mNumMeshes = partCount;
-	node->mMeshes = (unsigned int*)malloc(sizeof(int) * partCount);
+	node->mMeshes = new unsigned int[partCount];//(unsigned int*)malloc(sizeof(int) * partCount);
 
 	// currently I don't have a way to clear one channel, so this could mess things up
 	if(meshinfo->initialized && meshinfo->indicies.size() == partCount){
@@ -276,7 +289,12 @@ void AssImpExporter::addRenderGeo(render_geometryHandle* handle, uint32_t index,
 	} else {
 		for(int part = 0; part < partCount; part++){
 			auto pInfo = handle->getPartInfo(index, 0, part);
-			int meshidx = addGeoPart(handle, index, 0, pInfo.indexStart, pInfo.indexCount);
+			int matIndex = 0;
+			if(pInfo.materialIndex < materials.size()){
+				// correct material is in the vector
+				matIndex = useMaterial(materials[pInfo.materialIndex]);
+			}
+			int meshidx = addGeoPart(handle, index, 0, pInfo.indexStart, pInfo.indexCount, matIndex);
 			meshinfo->indicies.emplace_back(meshidx);
 			node->mMeshes[part] = meshidx;
 		}
@@ -284,98 +302,71 @@ void AssImpExporter::addRenderGeo(render_geometryHandle* handle, uint32_t index,
 
 	meshinfo->initialized = true;
 
-/*	// create a mesh
-	scene->mMeshes = (aiMesh**)realloc(scene->mMeshes, (scene->mNumMeshes+1) * sizeof(aiMesh*));
-	aiMesh* aimesh = (aiMesh*)malloc(sizeof(aiMesh));
-	memset(aimesh,0,sizeof(aiMesh));
-	scene->mMeshes[scene->mNumMeshes] = aimesh;
-	scene->mNumMeshes++;
-	meshinfo->index = scene->mNumMeshes - 1;
-	meshinfo->initialized = true;
-	node->mMeshes[0] = meshinfo->index;	// use the last added mesh
+}
 
-	aimesh->mAABB.mMin.Set(0+posOffset[0], 0+posOffset[1], 0+posOffset[2]);
-	aimesh->mAABB.mMax.Set(0+posOffset[0]+posScale[0], 0+posOffset[1]+posScale[1], 0+posOffset[2]+posScale[2]);
+unsigned int AssImpExporter::useMaterial(mat_Handle* matHandle){
+	uint32_t matGlobalId = matHandle->item->moduleItem->assetID;
+	if(materialMap.contains(matHandle->item->moduleItem->assetID)){
+		// already added
+		return materialMap[matHandle->item->moduleItem->assetID];
+	}
+	usedMaterials.emplace(matHandle);
 
-	int vertCount = 0;
-	for(int i = 0; i < 19; i++){
-		uint16_t vtxidx = handle->getVertexBufferIndex(index, 0, i);
-		if(vtxidx == 0xffff){
-			continue;
-		}
+	// material needs to be added
+	int matIndex = scene->mNumMaterials;
+	scene->mMaterials = (aiMaterial**)realloc(scene->mMaterials, (++scene->mNumMaterials) * sizeof(aiMaterial*));
+	aiMaterial* aimat = new aiMaterial();
+	scene->mMaterials[matIndex] = aimat;
+	materialMap[matGlobalId] = matIndex;
+	auto params = matHandle->getParameters();
+	std::string materialName = matHandle->item->moduleItem->path;
+	aiString matName(materialName);
+	aimat->AddProperty(&matName, AI_MATKEY_NAME);
 
-		bufferInfo inf = handle->getVertexBuffer(vtxidx);
-		switch(i){
-		case 0:
-			// vertex
 
-			aimesh->mNumVertices = inf.count;
-			vertCount = inf.count;
-			aimesh->mVertices = (aiVector3D*)malloc(sizeof(aiVector3D) * inf.count);	// may be a memory leak, idc
-			for(int v = 0; v < inf.count; v++){
-				// kinda unreadable, but it just normalises the uint and applies the offset/scale
-				aimesh->mVertices[v].Set((((uint16_t*)inf.data)[v*4]/65535.0f)*posScale[0]+posOffset[0],
-						(((uint16_t*)inf.data)[(v*4)+1]/65535.0f)*posScale[1]+posOffset[1],
-						(((uint16_t*)inf.data)[(v*4)+2]/65535.0f)*posScale[2]+posOffset[2]);
-			}
+	for(auto& [nameId, parameter] : params){
+		std::string paramName = idLUT.lookupID(nameId);
+
+		paramName = "$raw." + paramName;
+		std::string stringRepr = parameter->toString();
+		aiString aistr(stringRepr);
+
+
+		/*
+		 * Bitmap, Real, Bool, Int, and Color need special treatment, String and Preset are fine with the default toString
+		 */
+		switch(parameter->typeInt){
+		case materialParameterBase::TYPE_BITMAP:
+			usedBitmaps.emplace_back(std::dynamic_pointer_cast<bitmapParameter>(parameter)->globalId);
+			break;
+		default:
 			break;
 		}
+		aimat->AddProperty(&aistr, paramName.c_str());
 	}
 
-	uint8_t idxBufferType = handle->getIndexBufferType(index);
-	int numFaces = 0;
-	if(handle->getMeshFlags(index) & 1<<4){
-		// no index buffer
-		if(idxBufferType == INDEX_BUFFER_TYPE_TRIANGLE_LIST){
-			numFaces = vertCount / 3;
-			aimesh->mFaces = (aiFace*)malloc(sizeof(aiFace) * numFaces);
-			int cnt = 0;
-			for(int i = 0; i < numFaces; i++){
-				aimesh->mFaces[i].mNumIndices = 3;
-				aimesh->mFaces[i].mIndices = (unsigned int*)malloc(sizeof(unsigned int) * 3);
-				aimesh->mFaces[i].mIndices[0] = cnt++;
-				aimesh->mFaces[i].mIndices[1] = cnt++;
-				aimesh->mFaces[i].mIndices[2] = cnt++;
-			}
-		}
-		if(idxBufferType == INDEX_BUFFER_TYPE_TRIANGLE_STRIP){
-			numFaces = vertCount - 2;
-			aimesh->mFaces = (aiFace*)malloc(sizeof(aiFace) * numFaces);
-			for(int i = 0; i < numFaces; i++){
-				aimesh->mFaces[i].mNumIndices = 3;
-				aimesh->mFaces[i].mIndices = (unsigned int*)malloc(sizeof(unsigned int) * 3);
-				aimesh->mFaces[i].mIndices[0] = i;
-				aimesh->mFaces[i].mIndices[1] = i + 1;
-				aimesh->mFaces[i].mIndices[2] = i + 2;
-			}
-		}
+	return matIndex;
+}
 
-	} else {
-		// index buffer is present
-		uint16_t idx_idx = handle->getIndexBufferIndex(index, 0);
-		bufferInfo inf = handle->getIndexBuffer(idx_idx);
 
-		if(idxBufferType == INDEX_BUFFER_TYPE_TRIANGLE_LIST){
-			numFaces = inf.count / 3;
-			aimesh->mFaces = (aiFace*)malloc(sizeof(aiFace) * numFaces);
-			int cnt = 0;
-			for(int i = 0; i < numFaces; i++){
-				aimesh->mFaces[i].mNumIndices = 3;
-				aimesh->mFaces[i].mIndices = (unsigned int*)malloc(sizeof(unsigned int) * 3);
-				aimesh->mFaces[i].mIndices[0] = getIndex(inf.stride, cnt++, inf.data);
-				aimesh->mFaces[i].mIndices[1] = getIndex(inf.stride, cnt++, inf.data);
-				aimesh->mFaces[i].mIndices[2] = getIndex(inf.stride, cnt++, inf.data);
-			}
-		}
+void AssImpExporter::exportBitmaps(std::string path, ModuleManager* modman, int mipmap){
+	std::unordered_map<uint32_t,int> exported;	// just used to quickly check if a bitmap has been exported
 
-		if(idxBufferType == INDEX_BUFFER_TYPE_TRIANGLE_STRIP){
-			// due to restarts, this could be a bit more complicated than I'm willing to deal with rn (count the restarts)
-			//numFaces = inf.count / 3;
+	std::vector<uint32_t> uniqueBitmaps;
+
+	for(auto globalId : usedBitmaps){
+		if(exported.contains(globalId)){
+			continue;
 		}
+		exported[globalId] = 0;	// the value doesn't matter, I'm only using the map as an easy way to check for duplicates
+		if(!modman->assetIdItems.contains(globalId)){
+			logger->log(LOG_LEVEL_ERROR, "Bitmap 0x%08x cannot be found in the loaded modules!\n", globalId);
+			continue;
+		}
+		uniqueBitmaps.emplace_back(globalId);
 	}
-	aimesh->mNumFaces = numFaces;
-	aimesh->mPrimitiveTypes |= aiPrimitiveType_TRIANGLE;*/
-
+	BitmapBatchExtractor batcher(modman, logger);
+	batcher.extract(path, uniqueBitmaps, mipmap);
 
 }
 
@@ -384,11 +375,24 @@ void AssImpExporter::exportScene(std::string path){
 		logger->log(LOG_LEVEL_ERROR, "No Scene to export!\n");
 		return;
 	}
+	//std::cout << jsonMaterials;
 	auto ret = assExporter.Export(scene, "collada", path, aiProcess_ConvertToLeftHanded);
+	std::ofstream jsonOutput(path + ".json");
+	if(jsonOutput.is_open()){
+		MaterialJsonExtractor jsonEx(idLUT);
+		jsonOutput << jsonEx.toJson(std::vector<mat_Handle*>(usedMaterials.begin(), usedMaterials.end()));
+		jsonOutput.flush();
+		jsonOutput.close();
+	}
+
 }
 
 void AssImpExporter::setLogger(Logger* logger){
 	this->logger = logger;
+}
+
+void AssImpExporter::setStringIDLUT(StringIDLUT lut){
+	this->idLUT = lut;
 }
 
 void AssImpExporter::newScene(){
@@ -397,10 +401,11 @@ void AssImpExporter::newScene(){
 	aiCopyScene(cscene, &scene);
 	//scene = (aiScene*)importer.GetOrphanedScene();
 	meshinfoHandles.clear();
+	materialMap.clear();
+	usedMaterials.clear();
 	// the obj exporter needs at least one material
 	scene->mMaterials = (aiMaterial**)realloc(scene->mMaterials, (++scene->mNumMaterials) * sizeof(aiMaterial*));
-	aiMaterial* aimat = (aiMaterial*)malloc(sizeof(aiMaterial));
-	memset(aimat,0,sizeof(aiMaterial));
+	aiMaterial* aimat = new aiMaterial();
 	scene->mMaterials[0] = aimat;
 
 	// rotate everything to be correct (I think) in openGL coordinates

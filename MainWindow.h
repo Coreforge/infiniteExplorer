@@ -24,6 +24,7 @@ public:
 	Gtk::MenuItem viewer3DItem;
 	Gtk::MenuItem newSceneItem;
 	Gtk::MenuItem exportSceneItem;
+	Gtk::MenuItem exportSceneBitmapsItem;
 
 	ModuleDisplayManager* moduleManager;
 

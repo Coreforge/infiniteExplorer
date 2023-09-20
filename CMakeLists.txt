@@ -16,6 +16,9 @@ set(FUSE ON)
 
 option(YTTRIUM_3D_VIEWER "Build the 3D viewer" ON)
 option(BUILD_CLI_VERSION "Build CLI" ON)
+option(SANITIZE_ADDRESS "use ASAN" OFF)
+
+
 
 
 ############################################################################
@@ -30,7 +33,12 @@ if(WIN32)
 set(WINFSP_DIR "/c/Program Files (x86)/WinFSP/lib")
 endif()
 
-
+if(SANITIZE_ADDRESS)
+	add_compile_options(-fsanitize=address)
+	add_link_options(-fsanitize=address)
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
+	set (CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
+endif()
 
 if(NOT DEFINED LIBINFINITE)
 	add_subdirectory(libInfinite/)
@@ -115,6 +123,10 @@ endif()
 find_package(assimp REQUIRED)
 target_link_libraries(infiniteExplorer assimp)
 
+#find_package(jsoncpp REQUIRED)
+#target_link_libraries(infiniteExplorer jsoncpp)
+#find_package(PNG REQUIRED)
+#target_link_libraries(infiniteExplorer ${PNG_LIBRARIES})
 
 set_property(TARGET infiniteExplorer PROPERTY CXX_STANDARD 20)
 

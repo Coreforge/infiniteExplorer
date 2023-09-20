@@ -85,6 +85,7 @@ BspViewer::BspViewer(){
 						auto param = inst.materials[m]->getParameter(p);
 					}
 					auto shader = inst.materials[m]->getShader();
+					//inst.materials[m]->getParameters();
 					paramCount = shader->getParameterCount();
 					if(std::find(mats.begin(), mats.end(), shader->item->moduleItem->assetID) == mats.end()){
 						mats.emplace_back(shader->item->moduleItem->assetID);
@@ -115,7 +116,7 @@ BspViewer::BspViewer(){
 				rotation = glm::degrees(rotation);
 				glm::vec4 rotatedPos = glm::rotate(glm::radians(-90.0f), glm::vec3(1.0,0.0,0.0)) * glm::vec4(inst.position,1.0f);
 				//globalWindowPointer->viewer3D.addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, bigrotmat, -inst.scale); // glm::vec3(rotatedPos.x,rotatedPos.y,rotatedPos.z)
-				globalWindowPointer->currentExporter->addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, rot_mat, inst.scale,"owo");
+				globalWindowPointer->currentExporter->addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, rot_mat, inst.scale,inst.geo->item->moduleItem->path, inst.materials);
 			}
 		}
 	});

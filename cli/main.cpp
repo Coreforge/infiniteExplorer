@@ -1,6 +1,8 @@
 #include <argparse/argparse.hpp>
 #include <cstdio>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <string.h>
 #include <vector>
@@ -10,11 +12,15 @@
 #include <libInfinite/logger/ConsoleLogger.h>
 #include <libInfinite/tags/TagManager.h>
 
+
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
 
 #include <3D/AssImpExporter.h>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../stb_image_write.h"
 
 
 #ifdef _WIN64
@@ -43,7 +49,13 @@ int main(int argc, char* argv[]){
 
 	parser.add_argument("-e", "--export").help("Export data from the tag. Currently only SBSP").default_value(false).implicit_value(true);
 
+	parser.add_argument("-l", "--hash-lut").help("LUT for string IDs").default_value("");
+
 	parser.add_argument("-o", "--output").help("Output path").default_value("--");
+
+	parser.add_argument("-t", "--texture-out").help("Output for textures. The full path needs to already exist").default_value("");
+
+	parser.add_argument("-m", "--mipmap").help("mipmap level to export textures at").default_value(0).scan<'i',int>();
 
 	try{
 		parser.parse_args(argc, argv);
@@ -63,6 +75,23 @@ int main(int argc, char* argv[]){
 
 	int generalLogLevel = std::max(LOG_LEVEL_ERROR - verbosity,0);
 	ConsoleLogger generalLogger(generalLogLevel, "", loggerfile);
+
+	StringIDLUT stringLUT;
+	stringLUT.setLogger(&generalLogger);
+	if(parser.get<std::string>("-l") != ""){
+		std::ifstream hashLUT(parser.get<std::string>("-l"));
+		if(hashLUT.is_open()){
+			std::string lutData;
+			std::stringstream stream;
+			stream << hashLUT.rdbuf();
+			//hashLUT >> lutData;
+			stringLUT.loadMap(stream.str());
+		} else {
+			generalLogger.log(LOG_LEVEL_ERROR, "Could not open stringID LUT at %s\n", parser.get<std::string>("-l"));
+		}
+	} else {
+		generalLogger.log(LOG_LEVEL_WARNING, "No stringID LUT provided. stringIDs will just be converted to hex numbers!\n");
+	}
 
 	int libInfLogLevel = std::max(LOG_LEVEL_ERROR - verbosity,0);
 	ConsoleLogger libInfLogger(libInfLogLevel,"[libInfinite] ", loggerfile);
@@ -92,7 +121,7 @@ int main(int argc, char* argv[]){
 		if(parser.get<bool>("-e")){
 			Tag* tag = tagman.getTag(globalId);
 			if(modman.assetIdItems[globalId]->tagType == 'sbsp'){
-				if(exportBSP(dynamic_cast<sbspHandle*>(tag), parser.get<std::string>("-o"), &generalLogger)){
+				if(exportBSP(dynamic_cast<sbspHandle*>(tag), parser.get<std::string>("-o"), &generalLogger, stringLUT, &modman, parser.get<std::string>("-t"), parser.get<int>("-m"))){
 					return -1;
 				}
 			}
@@ -104,7 +133,7 @@ int main(int argc, char* argv[]){
 
 }
 
-int exportBSP(sbspHandle* handle, std::string out, Logger* logger){
+int exportBSP(sbspHandle* handle, std::string out, Logger* logger, StringIDLUT& lut, ModuleManager* modman, std::string texout, int mipmap){
 	if(handle == nullptr){
 		logger->log(LOG_LEVEL_CRITICAL, "No BSP tag handle to export!\n");
 		return -1;
@@ -112,6 +141,7 @@ int exportBSP(sbspHandle* handle, std::string out, Logger* logger){
 	AssImpExporter exporter;
 	exporter.setLogger(logger);
 	exporter.newScene();
+	exporter.setStringIDLUT(lut);
 
 	int c = handle->getGeoInstanceCount();
 	int f = 0;
@@ -145,10 +175,14 @@ int exportBSP(sbspHandle* handle, std::string out, Logger* logger){
 		rotation = glm::degrees(rotation);
 		glm::vec4 rotatedPos = glm::rotate(glm::radians(-90.0f), glm::vec3(1.0,0.0,0.0)) * glm::vec4(inst.position,1.0f);
 		//globalWindowPointer->viewer3D.addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, bigrotmat, -inst.scale); // glm::vec3(rotatedPos.x,rotatedPos.y,rotatedPos.z)
-		exporter.addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, rot_mat, inst.scale,"owo");
+		exporter.addRenderGeo(&inst.geo->geoHandle, inst.meshIndex, inst.position, rot_mat, inst.scale, inst.geo->item->moduleItem->path, inst.materials);
 	}
 	logger->log(LOG_LEVEL_INFO, "%d Instances in total, %d included in export (shadowcasters are excluded)\n", i, f);
 	exporter.exportScene(out);
+	if(texout != ""){
+		// export textures here
+		exporter.exportBitmaps(texout, modman, mipmap);
+	}
 	return 0;
 }
 // duplicate code, since this is currently in ModuleDisplayManager, which is only used in the GUI

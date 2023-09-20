@@ -34,7 +34,7 @@ jobs:
       with:
         msystem: MINGW64
         # install gcc, cmake and gtkmm3
-        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-gtkmm3 mingw-w64-x86_64-cmake mingw-w64-x86_64-glew mingw-w64-x86_64-glfw mingw-w64-x86_64-glm mingw-w64-x86_64-assimp
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-gtkmm3 mingw-w64-x86_64-cmake mingw-w64-x86_64-glew mingw-w64-x86_64-glfw mingw-w64-x86_64-glm mingw-w64-x86_64-assimp mingw-w64-x86_64-jsoncpp mingw-w64-x86_64-libpng
     
     - name: Configure CMake (FUSE)
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.

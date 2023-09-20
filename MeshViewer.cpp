@@ -11,6 +11,7 @@
 #include "materialDialog.h"
 
 #include <memory>
+#include <sstream>
 
 enum{
 	MTYPE_MESH,
@@ -138,7 +139,15 @@ MeshViewer::MeshViewer(){
 		if(s->get_value(meshTypeColumn) == MTYPE_MESH){
 			int meshIndex = s->get_value(meshIndexColumn);
 			//globalWindowPointer->viewer3D.addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, meshIndex, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0));
-			globalWindowPointer->currentExporter->addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, meshIndex, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0),"owo");
+			std::stringstream stream;
+			stream << item->moduleItem->path << "/";
+			auto path = regionsStore->get_path(regionsTreeView->get_selection()->get_selected());
+			std::string perm = regionsStore->get_iter(path)->get_value(regionNameColumn);
+			path.up();
+			std::string reg = regionsStore->get_iter(path)->get_value(regionNameColumn);
+			stream << reg << "/" << perm;
+			stream << "/mesh" << meshIndex;
+			globalWindowPointer->currentExporter->addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, meshIndex, glm::vec3(0.0,0.0,0.0), glm::mat3(1.0), glm::vec3(1.0,1.0,1.0),stream.str(), (dynamic_cast<modeHandle*>(tag))->getMaterials());
 			//globalWindowPointer->viewer3D.addMesh(model.geoptr, ((Mesh*)s->get_value(meshPartPointerColumn))->meshptr, tag);
 		}
 	});

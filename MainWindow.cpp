@@ -51,7 +51,7 @@ MainWindow::MainWindow(){
 	} else {
 		libInfiniteLogger->log(LOG_LEVEL_ERROR, "Failed to open hash lookup table\n");
 	}
-
+	assimpExporterIF.setStringIDLUT(lut);
 
 	// set up the basic FUSE stuff
 #ifdef USE_FUSE
@@ -140,6 +140,24 @@ MainWindow::MainWindow(){
 		if(response == Gtk::RESPONSE_OK){
 			assimpExporterIF.exportScene(fileChooser->get_filename());
 		}
+	});
+
+	exportSceneBitmapsItem.set_label("Export Bitmaps for current scene");
+	exportSceneBitmapsItem.show();
+	toolsMenu->add(exportSceneBitmapsItem);
+	exportSceneBitmapsItem.signal_activate().connect([this]{
+		Gtk::FileChooserDialog* fileChooser = new Gtk::FileChooserDialog("Export",Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+		fileChooser->add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+		fileChooser->add_button("_Save", Gtk::RESPONSE_OK);
+
+		fileChooser->set_current_name("/tmp/texout/");
+
+		int response = fileChooser->run();
+		fileChooser->close();
+		if(response == Gtk::RESPONSE_OK){
+			assimpExporterIF.exportBitmaps(fileChooser->get_filename(), &moduleManager->modMan, 0);
+		}
+		delete fileChooser;
 	});
 
 	openModuleItem->show();
