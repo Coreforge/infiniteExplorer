@@ -43,6 +43,8 @@ Dependencies are
 - glew (libglew-dev)
 - glm (libglm-dev)
 - libassimp-dev
+- libpng-dev
+- libpng++-dev
 
 to compile, run
 ```
@@ -64,13 +66,15 @@ mingw-w64-x86_64-glew
 mingw-w64-x86_64-glfw
 mingw-w64-x86_64-glm
 mingw-w64-x86_64-assimp
+mingw-w64-x86_64-libpng
+mingw-w64-x86_64-jsoncpp
 ```
 
 The build process is like it is on linux, except that oodle has to be specified manually, and pkg-config doesn't work as nicely for WinFSP
 ```
 mkdir build
 cd build
-env PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/c/Program Files (x86)/WinFSP/lib" cmake -DOODLE_LIBRARY=<path/to/oodle.dll> ..
+env PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/c/Program Files (x86)/WinFSP/lib" cmake -DOODLE_LIBRARY=<path/to/oodle.dll> -DDOWNLOAD_PNGPP=ON ..
 make
 ```
 

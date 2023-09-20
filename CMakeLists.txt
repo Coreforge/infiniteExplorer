@@ -17,7 +17,7 @@ set(FUSE ON)
 option(YTTRIUM_3D_VIEWER "Build the 3D viewer" ON)
 option(BUILD_CLI_VERSION "Build CLI" ON)
 option(SANITIZE_ADDRESS "use ASAN" OFF)
-
+option(DOWNLOAD_PNGPP "Download libpng++ 2.10 from launchpad" OFF)
 
 
 

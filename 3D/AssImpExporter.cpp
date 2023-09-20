@@ -13,7 +13,7 @@
 #include "libInfinite/BitmapBatchExtractor.h"
 #include "libInfinite/MaterialJsonExporter.h"
 
-#include <png++/png.hpp>
+//#include <png++/png.hpp>
 
 #define INDEX_BUFFER_TYPE_TRIANGLE_LIST 3
 #define INDEX_BUFFER_TYPE_TRIANGLE_STRIP 5
@@ -403,6 +403,7 @@ void AssImpExporter::newScene(){
 	meshinfoHandles.clear();
 	materialMap.clear();
 	usedMaterials.clear();
+	usedBitmaps.clear();
 	// the obj exporter needs at least one material
 	scene->mMaterials = (aiMaterial**)realloc(scene->mMaterials, (++scene->mNumMaterials) * sizeof(aiMaterial*));
 	aiMaterial* aimat = new aiMaterial();
