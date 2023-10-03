@@ -58,12 +58,12 @@ void AssImpExporter::addUV(render_geometryHandle* handle, bufferInfo& inf, aiMes
 	aimesh->mNumUVComponents[uvChannel] = 2;
 	aimesh->mTextureCoords[uvChannel] = new aiVector3D[reducermap.getSize()];//(aiVector3D*)malloc(sizeof(aiVector3D) * reducermap.getSize());
 	float uvScale[2], uvOffset[2];
-	handle->UVCompressionOffset(uvOffset, 0);
-	handle->UVCompressionScale(uvScale, 0);
+	handle->UVCompressionOffset(uvOffset, uvChannel);
+	handle->UVCompressionScale(uvScale, uvChannel);
 
 	for(int mappedV = 0; mappedV < reducermap.usedIndicies.size(); mappedV++){
 		int v = reducermap.usedIndicies[mappedV];
-		aimesh->mTextureCoords[uvChannel][mappedV].Set( ((((uint16_t*)inf.data)[v*2] /65535.0f) * uvScale[0]) + uvOffset[0],
+		aimesh->mTextureCoords[uvChannel][mappedV].Set(((((uint16_t*)inf.data)[v*2] /65535.0f) * uvScale[0]) + uvOffset[0],
 				((((uint16_t*)inf.data)[(v*2) + 1] /65535.0f) * uvScale[1]) + uvOffset[1], 0);
 	}
 }
