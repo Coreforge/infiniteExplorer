@@ -180,7 +180,7 @@ void InfMesh::setupMesh(uint32_t meshIndex, uint32_t lod){
 			break;
 		case 5:
 			glBindBuffer(GL_ARRAY_BUFFER, vao->vertexBuffers[i]->name);
-			glVertexAttribPointer(5,3,GL_UNSIGNED_SHORT,GL_TRUE,vao->vertexBuffers[i]->stride,(void*)0);
+			glVertexAttribPointer(5,4,GL_UNSIGNED_INT_2_10_10_10_REV,GL_TRUE,vao->vertexBuffers[i]->stride,(void*)0);
 			glEnableVertexAttribArray(5);
 			break;
 		default:

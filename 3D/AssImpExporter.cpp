@@ -63,8 +63,8 @@ void AssImpExporter::addUV(render_geometryHandle* handle, bufferInfo& inf, aiMes
 
 	for(int mappedV = 0; mappedV < reducermap.usedIndicies.size(); mappedV++){
 		int v = reducermap.usedIndicies[mappedV];
-		aimesh->mTextureCoords[uvChannel][mappedV].Set(((((uint16_t*)inf.data)[v*2] /65535.0f) * uvScale[0]) + uvOffset[0],
-				((((uint16_t*)inf.data)[(v*2) + 1] /65535.0f) * uvScale[1]) + uvOffset[1], 0);
+		aimesh->mTextureCoords[uvChannel][mappedV].Set(((((uint16_t*)inf.data)[v*2] /65536.0f) * uvScale[0]) + uvOffset[0],
+				((((uint16_t*)inf.data)[(v*2) + 1] /65536.0f) * uvScale[1]) + uvOffset[1], 0);
 	}
 }
 
@@ -149,6 +149,30 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 
 		case 3:
 			addUV(handle, inf, aimesh, reducermap, 2);
+			break;
+
+		case 5:
+			// normals
+
+			aimesh->mNumVertices = reducermap.getSize();
+			vertCount = reducermap.getSize();
+			aimesh->mNormals = new aiVector3D[reducermap.getSize()];//(aiVector3D*)malloc(sizeof(aiVector3D) * reducermap.getSize());	// may be a memory leak, idc
+			for(int mappedV = 0; mappedV < reducermap.usedIndicies.size(); mappedV++){
+				// kinda unreadable, but it just normalises the uint and applies the offset/scale
+				int v = reducermap.usedIndicies[mappedV];
+				double xn = ((uint32_t*)inf.data)[v] & 0x3ff;
+				double yn = (((uint32_t*)inf.data)[v] >> 10) & 0x3ff;
+				double zn = (((uint32_t*)inf.data)[v] >> 20) & 0x3ff;
+				double wn = (((uint32_t*)inf.data)[v] >> 30) & 0x3;
+				xn = (xn / 1023.0f) * 2 - 1;
+				yn = (yn / 1023.0f) * 2 - 1;
+				zn = (zn / 1023.0f) * 2 - 1;
+				wn = wn - 2;
+				double wclampedthingy = (int)(wn > 0) - (int)(wn < 0);
+				aimesh->mNormals[mappedV].Set(xn,
+						yn,
+						zn);
+			}
 			break;
 		}
 	}
@@ -412,7 +436,7 @@ void AssImpExporter::newScene(){
 	// rotate everything to be correct (I think) in openGL coordinates
 	scene->mRootNode->mTransformation.b2 = 0;
 	scene->mRootNode->mTransformation.b3 = 1;
-	scene->mRootNode->mTransformation.c2 = 1;
+	scene->mRootNode->mTransformation.c2 = -1;
 	scene->mRootNode->mTransformation.c3 = 0;
 
 	logger->log(LOG_LEVEL_INFO, "Created new Scene\n");

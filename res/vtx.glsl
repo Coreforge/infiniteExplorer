@@ -35,7 +35,7 @@ void main(){
 	float someNormalClampedThingy = float(int(uint(normalWClamped > 0.0) - uint(normalWClamped < 0.0)));
 	//norm = vec3(inverse(transpose(mat3(TransformMat))) * normalize(normal.xyz));
 	norm = vec3(normalXClamped,normalYClamped,normalZClamped);
-	
+	//norm *= someNormalClampedThingy;
 	unicolor.r = col.r * someNormalClampedThingy;
 	unicolor.g = col.g * (-someNormalClampedThingy);
 	unicolor.b = col.b;

@@ -53,6 +53,8 @@ private:
 
 	Gtk::Button* loadGLButton;
 	Gtk::Button* exportButton;
+	Gtk::Button* exportAllButton;
+	Gtk::Button* loadAllButton;
 
 	//std::string runExportDialog(std::string fileName);
 

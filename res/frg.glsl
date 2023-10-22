@@ -11,7 +11,7 @@ void main(){
 	vec3 lightpos = vec3(20.0,50.0,50.0);
 	//vec3 light_dir = normalize(lightpos - fragPos);
 	vec3 light_dir = normalize(vec3(1,1,1));
-	color = vec4(1.0,1.0,1.0,1.0);
+	color = vec4(unicolor, 1.0);//vec4(1.0,1.0,1.0,1.0);
 	color.rgb *= max(dot(light_dir, norm),0.15);
 	//color.rgb *= max(abs(dot(normalize(viewFragPos), norm)),0.15);
 }

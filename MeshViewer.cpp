@@ -40,6 +40,9 @@ MeshViewer::MeshViewer(){
 	builder->get_widget("partContextMenu", partContextMenu);
 	builder->get_widget("materialItem", partMaterialItem);
 
+	builder->get_widget("exportFullFile", exportAllButton);
+	builder->get_widget("loadFullFile", loadAllButton);
+
 	partContextMenu->attach_to_widget(*meshTreeView);
 	//builder->get_widget("regionsTreeStore", regionsStore);
 
@@ -149,6 +152,33 @@ MeshViewer::MeshViewer(){
 			stream << "/mesh" << meshIndex;
 			globalWindowPointer->currentExporter->addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, meshIndex, glm::vec3(0.0,0.0,0.0), glm::mat3(1.0), glm::vec3(1.0,1.0,1.0),stream.str(), (dynamic_cast<modeHandle*>(tag))->getMaterials());
 			//globalWindowPointer->viewer3D.addMesh(model.geoptr, ((Mesh*)s->get_value(meshPartPointerColumn))->meshptr, tag);
+		}
+	});
+
+	loadAllButton->signal_clicked().connect([this]{
+		for(auto& region : model.regions){
+			for(auto& permutation : region.permutations){
+				for(auto& mesh : permutation.meshes){
+					globalWindowPointer->viewer3D.addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, mesh.meshIndex, glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0));
+				}
+			}
+		}
+	});
+
+	exportAllButton->signal_clicked().connect([this]{
+		for(auto& region : model.regions){
+			for(auto& permutation : region.permutations){
+				for(auto& mesh : permutation.meshes){
+					int meshIndex = mesh.meshIndex;
+					std::stringstream stream;
+					stream << item->moduleItem->path << "/";
+					std::string perm = permutation.nameStr;
+					std::string reg = region.nameStr;
+					stream << reg << "/" << perm;
+					stream << "/mesh" << meshIndex;
+					globalWindowPointer->currentExporter->addRenderGeo(&(dynamic_cast<modeHandle*>(tag))->geoHandle, meshIndex, glm::vec3(0.0,0.0,0.0), glm::mat3(1.0), glm::vec3(1.0,1.0,1.0),stream.str(), (dynamic_cast<modeHandle*>(tag))->getMaterials());
+				}
+			}
 		}
 	});
 
