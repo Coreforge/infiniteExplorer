@@ -168,10 +168,10 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 				yn = (yn / 1023.0f) * 2 - 1;
 				zn = (zn / 1023.0f) * 2 - 1;
 				wn = wn - 2;
-				double wclampedthingy = (int)(wn > 0) - (int)(wn < 0);
-				aimesh->mNormals[mappedV].Set(xn,
-						yn,
-						zn);
+				double normalFactor = (int)(wn > 0) - (int)(wn < 0);
+				aimesh->mNormals[mappedV].Set(normalFactor * xn,
+						normalFactor * yn,
+						normalFactor * zn);
 			}
 			break;
 		}
