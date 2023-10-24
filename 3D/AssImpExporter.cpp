@@ -174,6 +174,30 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 						zn);
 			}
 			break;
+
+		case 6:
+			// tangents
+
+			aimesh->mNumVertices = reducermap.getSize();
+			vertCount = reducermap.getSize();
+			aimesh->mTangents = new aiVector3D[reducermap.getSize()];//(aiVector3D*)malloc(sizeof(aiVector3D) * reducermap.getSize());	// may be a memory leak, idc
+			for(int mappedV = 0; mappedV < reducermap.usedIndicies.size(); mappedV++){
+				// kinda unreadable, but it just normalises the uint and applies the offset/scale
+				int v = reducermap.usedIndicies[mappedV];
+				double xn = ((uint32_t*)inf.data)[v] & 0x3ff;
+				double yn = (((uint32_t*)inf.data)[v] >> 10) & 0x3ff;
+				double zn = (((uint32_t*)inf.data)[v] >> 20) & 0x3ff;
+				double wn = (((uint32_t*)inf.data)[v] >> 30) & 0x3;
+				xn = (xn / 1023.0f) * 2 - 1;
+				yn = (yn / 1023.0f) * 2 - 1;
+				zn = (zn / 1023.0f) * 2 - 1;
+				wn = wn - 2;
+				double wclampedthingy = (int)(wn > 0) - (int)(wn < 0);
+				aimesh->mTangents[mappedV].Set(xn,
+						yn,
+						zn);
+			}
+			break;
 		}
 	}
 
@@ -400,7 +424,7 @@ void AssImpExporter::exportScene(std::string path){
 		return;
 	}
 	//std::cout << jsonMaterials;
-	auto ret = assExporter.Export(scene, "collada", path, aiProcess_ConvertToLeftHanded);
+	auto ret = assExporter.Export(scene, "collada", path, aiProcess_FlipUVs);
 	std::ofstream jsonOutput(path + ".json");
 	if(jsonOutput.is_open()){
 		MaterialJsonExtractor jsonEx(idLUT);
