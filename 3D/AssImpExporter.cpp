@@ -169,9 +169,9 @@ int AssImpExporter::addGeoPart(render_geometryHandle* handle, uint32_t index, ui
 				zn = (zn / 1023.0f) * 2 - 1;
 				wn = wn - 2;
 				double normalFactor = (int)(wn > 0) - (int)(wn < 0);
-				aimesh->mNormals[mappedV].Set(normalFactor * xn,
-						normalFactor * yn,
-						normalFactor * zn);
+				aimesh->mNormals[mappedV].Set(xn,
+						yn,
+						zn);
 			}
 			break;
 
