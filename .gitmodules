@@ -1,9 +1,9 @@
 [submodule "libInfinite"]
 	path = libInfinite
-	url = git@github.com:Coreforge/libInfinite.git
+	url = https://github.com/Coreforge/libInfinite.git
 [submodule "yttrium"]
 	path = 3D/yttrium
-	url = git@github.com:Coreforge/yttrium.git
+	url = https://github.com/Coreforge/yttrium.git
 [submodule "argparse"]
 	path = argparse
 	url = https://github.com/p-ranav/argparse
