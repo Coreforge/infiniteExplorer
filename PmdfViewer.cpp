@@ -1,5 +1,6 @@
 #include "PmdfViewer.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
