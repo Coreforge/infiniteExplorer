@@ -18,8 +18,9 @@ option(YTTRIUM_3D_VIEWER "Build the 3D viewer" ON)
 option(BUILD_CLI_VERSION "Build CLI" ON)
 option(SANITIZE_ADDRESS "use ASAN" OFF)
 option(DOWNLOAD_PNGPP "Download libpng++ 2.10 from launchpad" OFF)
-
-
+option(DOWNLOAD_PEDEPS_WIN "Download win64 version of pedeps from the github releases (used for windows CI builds)" OFF)
+option(PEDEPS_COPY "Copy required libraries using pedeps" OFF)
+set(PACKAGE_OUT_DIR "package/")
 
 ############################################################################
 #
@@ -181,5 +182,29 @@ target_link_libraries(infiniteExplorer Infinite)
 
 # copy resource files
 include(res/CMakeLists.txt)
-
+copyres("")
 configure_file(libInfinite/3rd_party/detex/LICENSE detex_LICENSE COPYONLY)
+
+
+if(DOWNLOAD_PEDEPS_WIN)
+    include(FetchContent)
+    FetchContent_Declare(pedeps_release URL "https://github.com/brechtsanders/pedeps/releases/download/0.1.13/pedeps-0.1.13-win64.zip"
+        URL_HASH SHA256=3ac8b970f4e8525bf3fc5a699bd892a4be28bfad72946758d991ec5af18bfbeb)
+    FetchContent_MakeAvailable(pedeps_release)
+    #file(DOWNLOAD "https://github.com/brechtsanders/pedeps/releases/download/0.1.13/pedeps-0.1.13-win64.zip" "pedeps_win64.zip" SHOW_PROGRESS TLS_VERIFY ON)
+    #file(ARCHIVE_EXTRACT INPUT "pedeps_win64.zip" DESTINATION "pedeps/" PATTERNS "bin/*")
+    set(PEDEPS_COPYDEPS "${pedeps_release_SOURCE_DIR}/bin/copypedeps.exe")
+endif()
+
+if(PEDEPS_COPY)
+    copyres(${PACKAGE_OUT_DIR})
+    add_custom_command(TARGET infiniteExplorer
+        POST_BUILD 
+        COMMENT "Copying required libraries to package directory"
+        COMMAND ${PEDEPS_COPYDEPS} ARGS "-r" $<TARGET_FILE:infiniteExplorer> ${PACKAGE_OUT_DIR})
+    add_custom_command(TARGET infiniteExplorer
+        POST_BUILD 
+        COMMENT "Setting up the rest of the package's environment"
+        COMMAND "bash" ARGS "${CMAKE_CURRENT_LIST_DIR}/wincreatepackage.sh" ${PACKAGE_OUT_DIR}
+        DEPENDS wincreatepackage.sh)
+endif()

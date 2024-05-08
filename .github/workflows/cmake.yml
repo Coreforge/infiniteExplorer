@@ -39,7 +39,7 @@ jobs:
     - name: Configure CMake (FUSE)
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: env PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/c/Program Files (x86)/WinFSP/lib" cmake -B $(echo '${{github.workspace}}/build' | tr '\\' '/') -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DDOWNLOAD_PNGPP=ON -DOODLE_LIBRARY=$(echo '${{github.workspace}}' | tr '\\' '/')/libInfinite/oo2core_8_win64.dll
+      run: env PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/c/Program Files (x86)/WinFSP/lib" cmake -B $(echo '${{github.workspace}}/build' | tr '\\' '/') -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DDOWNLOAD_PNGPP=ON -DOODLE_LIBRARY=$(echo '${{github.workspace}}' | tr '\\' '/')/libInfinite/oo2core_8_win64.dll -DDOWNLOAD_PEDEPS_WIN=ON -DPEDEPS_COPY=ON
 
     - name: Build (FUSE)
       # Build your program with the given configuration
@@ -48,7 +48,7 @@ jobs:
     - name: Configure CMake (no FUSE)
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B $(echo '${{github.workspace}}/build2' | tr '\\' '/') -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOODLE_LIBRARY=$(echo '${{github.workspace}}' | tr '\\' '/')/libInfinite/oo2core_8_win64.dll -DFUSE=OFF -DDOWNLOAD_PNGPP=ON
+      run: cmake -B $(echo '${{github.workspace}}/build2' | tr '\\' '/') -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOODLE_LIBRARY=$(echo '${{github.workspace}}' | tr '\\' '/')/libInfinite/oo2core_8_win64.dll -DFUSE=OFF -DDOWNLOAD_PNGPP=ON -DDOWNLOAD_PEDEPS_WIN=ON -DPEDEPS_COPY=ON
 
     - name: Build (no FUSE)
       # Build your program with the given configuration
@@ -56,22 +56,22 @@ jobs:
 
     - name: Upload a Build Artifact (FUSE)
       # upload the resulting binary. 
-      # Libraries and resources are not uploaded as they don't change as much and should be usable from the latest release or can be copied from the repository without the need to compile anything
+      # the main executable should be runnable after extracting the archive
       uses: actions/upload-artifact@v3.1.0
       with:
         name: infiniteExplorer
         path: |
-          ${{github.workspace}}/build/infiniteExplorer.exe
+          ${{github.workspace}}/build/package/
           ${{github.workspace}}/build/infiniteExplorerCLI.exe
           ${{github.workspace}}/build/detex_LICENSE
       
     - name: Upload a Build Artifact (no FUSE)
       # upload the resulting binary. 
-      # Libraries and resources are not uploaded as they don't change as much and should be usable from the latest release or can be copied from the repository without the need to compile anything
+      # the main executable should be runnable after extracting the archive
       uses: actions/upload-artifact@v3.1.0
       with:
         name: infiniteExplorer_noFUSE
         path: |
-          ${{github.workspace}}/build2/infiniteExplorer.exe
+          ${{github.workspace}}/build2/package/
           ${{github.workspace}}/build2/infiniteExplorerCLI.exe
           ${{github.workspace}}/build2/detex_LICENSE
