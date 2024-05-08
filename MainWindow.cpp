@@ -24,7 +24,7 @@ MainWindow::MainWindow(){
 
 	// set up the logging backend
 	// don't set the TextBuffer yet, we'll do that once the LogViewer exists
-	LogManager* logManager = new LogManager(0x1000000,LOG_LEVEL_ERROR,nullptr);
+	LogManager* logManager = new LogManager(0x4000000,LOG_LEVEL_ERROR,nullptr);
 	ManagedLogger* libInfiniteLogger = new ManagedLogger("[libInfinite]",logManager);
 
 	ManagedLogger* fuseLogger = new ManagedLogger("[FUSE]",logManager);
